@@ -1,0 +1,7 @@
++incdir+./inc
+./inc/constants.vh
+./src/counter.v
+./src/lcd.v
+./src/pwm.v
+./src/square.v
+./top.v

@@ -1,0 +1,29 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Thu Sep 24 16:07:30 2026
+[*]
+[dumpfile] "/home/wd40bug/college/26Fall/ECE3337/Gyroscope/_build/default/test/lcd_tb.vcd"
+[dumpfile_mtime] "Thu Sep 24 16:05:52 2026"
+[dumpfile_size] 355406
+[savefile] "/home/wd40bug/college/26Fall/ECE3337/Gyroscope/test/lcd_tb.gtkw"
+[timestart] 78808200
+[size] 1536 782
+[pos] -1 -1
+*-16.102938 79000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] lcd_tb.
+[sst_width] 312
+[signals_width] 110
+[sst_expanded] 1
+[sst_vpaned_height] 221
+@28
+lcd_tb.clk
+@22
+lcd_tb.db[7:0]
+@28
+lcd_tb.e
+lcd_tb.rs
+lcd_tb.rw
+@25
+lcd_tb.uut.state[4:0]
+[pattern_trace] 1
+[pattern_trace] 0

@@ -1,0 +1,24 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Tue Sep 22 21:22:02 2026
+[*]
+[dumpfile] "/home/wd40bug/college/26Fall/ECE3337/Gyroscope/_build/default/test/pwm_tb.vcd"
+[dumpfile_mtime] "Tue Sep 22 21:21:26 2026"
+[dumpfile_size] 11954
+[savefile] "/home/wd40bug/college/26Fall/ECE3337/Gyroscope/test/pwm_tb.gtkw"
+[timestart] 0
+[size] 1920 1033
+[pos] -1921 -36
+*-8.077322 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 312
+[signals_width] 102
+[sst_expanded] 1
+[sst_vpaned_height] 309
+@28
+pwm_tb.clk
+pwm_tb.out_50_20
+pwm_tb.out_25_20
+pwm_tb.out_50_10
+pwm_tb.out_90_10
+[pattern_trace] 1
+[pattern_trace] 0
