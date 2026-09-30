@@ -40,7 +40,7 @@ module lcd #(
   TXRX_START = 12, TXRX_TSU = 13, TXRX_TE = 14, TXRX_TW = 15,
 
   // Other
-  TEXT = 16, DONE = 17;
+  TEXT = 16, RST = 17, RST_IDLE = 18;
 
   reg [4:0] state = INIT_WAIT_1;
 
@@ -155,34 +155,53 @@ module lcd #(
       end
 
       TEXT: begin
-        txrx_rs = 1;
-        txrx_rw = 0;
+        txrx_rs <= 1;
+        txrx_rw <= 0;
         txrx_next_state <= TEXT;
         txrx_next_state_delay_counter <= 0;
         text_counter <= text_counter + 1;
         state <= TXRX_START;
         case (text_counter)
-          0:  txrx_db = 8'b01011000;
-          1:  txrx_db = 8'b00111010;
-          2:  txrx_db = {4'b0011, x_0};
-          3:  txrx_db = {4'b0011, x_1};
-          4:  txrx_db = {4'b0011, x_2};
-          5:  txrx_db = 8'b01011001;
-          6:  txrx_db = 8'b00111010;
-          7:  txrx_db = {4'b0011, y_0};
-          8:  txrx_db = {4'b0011, y_1};
-          9:  txrx_db = {4'b0011, y_2};
-          10: txrx_db = 8'b01011010;
-          11: txrx_db = 8'b00111010;
-          12: txrx_db = {4'b0011, z_0};
-          13: txrx_db = {4'b0011, z_1};
+          0:  txrx_db <= 8'b01011000;
+          1:  txrx_db <= 8'b00111010;
+          2:  txrx_db <= {4'b0011, x_0};
+          3:  txrx_db <= {4'b0011, x_1};
+          4:  txrx_db <= {4'b0011, x_2};
+          5:  txrx_db <= 8'b01011001;
+          6:  txrx_db <= 8'b00111010;
+          7:  txrx_db <= {4'b0011, y_0};
+          8:  txrx_db <= {4'b0011, y_1};
+          9:  txrx_db <= {4'b0011, y_2};
+          10: txrx_db <= 8'b01011010;
+          11: txrx_db <= 8'b00111010;
+          12: txrx_db <= {4'b0011, z_0};
+          13: txrx_db <= {4'b0011, z_1};
           14: begin
-            txrx_db = {4'b0011, z_2};
-            txrx_next_state <= DONE;
+            txrx_db <= {4'b0011, z_2};
+            txrx_next_state_delay_counter <= `MS_TO_CLK(1000);
+            txrx_next_state <= RST;
           end
           default: begin
           end
         endcase
+      end
+
+      RST: begin 
+        if (delay_counter == 0) begin
+          txrx_rs = 0;
+          txrx_rw <= 0;
+          txrx_next_state <= RST_IDLE;
+          txrx_next_state_delay_counter <= `MS_TO_CLK(5);
+          txrx_db <= 8'b00000001;
+          state <= TXRX_START;
+        end
+      end
+
+      RST_IDLE: begin
+        if (delay_counter == 0) begin
+          text_counter <= 0;
+          state <= TEXT;
+        end
       end
 
       TXRX_START: begin
