@@ -2,8 +2,12 @@
 
 module top (
     input clk,
+<<<<<<< HEAD
     input rx_pin,
     input rst_neg,
+=======
+    input btn,
+>>>>>>> will-dev
     output [5:0] led,
     output lcd_rs,
     output lcd_rw,
@@ -19,16 +23,25 @@ module top (
       .out(pwm_out)
   );
 
+<<<<<<< HEAD
   //assign led = pwm_out ? 6'd0 : 6'b111111;
 
   reg [3:0] x_0; //= 8'd1;
   reg [3:0] x_1 = 8'd8;
   reg [3:0] x_2 = 8'd0;
+=======
+  assign led = btn ? 6'b111111 : pwm_out ? 6'd0 : 6'b111111;
 
-  reg [3:0] y_0 = 8'd0;
-  reg [3:0] y_1 = 8'd9;
-  reg [3:0] y_2 = 8'd0;
+  reg [3:0] x_0 = 4'd1;
+  reg [3:0] x_1 = 4'd8;
+  reg [3:0] x_2 = 4'd0;
+>>>>>>> will-dev
 
+  reg [3:0] y_0 = 4'd0;
+  reg [3:0] y_1 = 4'd9;
+  reg [3:0] y_2 = 4'd0;
+
+<<<<<<< HEAD
   reg [3:0] z_0 = 8'd2;
   reg [3:0] z_1 = 8'd7;
   reg [3:0] z_2 = 8'd1;
@@ -42,6 +55,11 @@ module top (
     reg [15:0] gyro_data;
     reg gyro_data_valid;
     wire [3:0] uart_state;
+=======
+  reg [3:0] z_0 = 4'd2;
+  reg [3:0] z_1 = 4'd7;
+  reg [3:0] z_2 = 4'd0;
+>>>>>>> will-dev
 
     reg rst_neg_d;
 
@@ -107,6 +125,7 @@ module top (
       .db (lcd_db)
   );
 
+<<<<<<< HEAD
     uart_rx uart_inst(
         .i_Clock(clk),
         .i_RX_Serial(rx_pin),
@@ -114,4 +133,13 @@ module top (
         .o_RX_Byte(uart_data)
     );
 
+=======
+  always @(posedge clk) begin
+    if (btn) begin
+        y_0 <= 4'd3;
+        y_1 = 4'd6;
+        y_2 = 4'd0;
+    end
+  end
+>>>>>>> will-dev
 endmodule

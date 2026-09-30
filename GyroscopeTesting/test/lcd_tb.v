@@ -8,13 +8,13 @@ module lcd_tb;
 
   lcd #(
     .CLK_SPEED(100_000)
-  ) uut (clk, rs, rw, e, db);
+  ) uut (.clk(clk), .rs(rs), .rw(rw), .e(e), .db(db));
 
   always #5 clk = ~clk;
 
   initial begin
     $dumpvars(0, lcd_tb);
-    #100_000
+    #27_100_000
     $finish;
   end
 
