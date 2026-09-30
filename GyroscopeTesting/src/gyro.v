@@ -7,7 +7,7 @@ module gyro #(
     output reg sda
 );
 
-  i2c_master #(.CLK_DIV(CLK_SPEED / (4 * I2C_SPEED))) i2c_master_inst (
+ /* i2c_master #(.CLK_DIV(CLK_SPEED / (4 * I2C_SPEED))) i2c_master_inst (
     .clk(clk),
     .rst(0),
     .start_tx(),
@@ -22,7 +22,7 @@ module gyro #(
     .busy(),
     .done(),
     .ack_err()
-  );
+  );*/
 
 
 endmodule
