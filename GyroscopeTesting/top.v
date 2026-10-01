@@ -7,18 +7,11 @@ module top (
     output lcd_rs,
     output lcd_rw,
     output lcd_e,
-    output [7:0] lcd_db
+    output [7:0] lcd_db,
+    output wire ena, enb, in1, in2, in3, in4
 );
-  wire pwm_out;
-  pwm #(
-      .DUTY  (1),
-      .PERIOD(100)
-  ) pwm_inst (
-      .clk(clk),
-      .out(pwm_out)
-  );
 
-  assign led = btn ? 6'b111111 : pwm_out ? 6'd0 : 6'b111111;
+  assign led = ~{ena, in1, in2, in3, in4, enb};
 
   reg [3:0] x_0 = 4'd1;
   reg [3:0] x_1 = 4'd8;
@@ -49,11 +42,30 @@ module top (
       .db (lcd_db)
   );
 
+  reg [7:0] left_duty = 8'd255;
+  reg [7:0] right_duty = 8'd255;
+  reg [2:0] left_state = 1;
+  reg [2:0] right_state = 1;
+  MotorControl motor_control_inst (
+      .clk(clk),
+      .rst(1'b0),
+      .duty1(left_duty),
+      .duty2(right_duty),
+      .state1(left_state),
+      .state2(right_state),
+      .left1(in1),
+      .left2(in2),
+      .right1(in4),
+      .right2(in3),
+      .leftpwm(ena),
+      .rightpwm(enb)
+  );
+
   always @(posedge clk) begin
     if (btn) begin
-        y_0 <= 4'd3;
-        y_1 = 4'd6;
-        y_2 = 4'd0;
+      y_0 <= 4'd3;
+      y_1 = 4'd6;
+      y_2 = 4'd0;
     end
   end
 endmodule
