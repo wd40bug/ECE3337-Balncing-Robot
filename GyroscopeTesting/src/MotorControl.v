@@ -37,12 +37,12 @@ always @(*) begin
         left1 <= 0;
         left2 <= 0;
     end
-    // Motor 2
-    if(state2 == 0) begin
+    // Motor 2 (Reversed)
+    if(state2 == 1) begin
         right1 <= 1;
         right2 <= 0;
     end
-    else if(state2 == 1) begin
+    else if(state2 == 0) begin
         right1 <= 0;
         right2 <= 1;
     end

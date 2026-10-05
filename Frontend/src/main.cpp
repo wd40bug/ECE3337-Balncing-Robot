@@ -3,10 +3,10 @@
 #include "WiFi.h"
 #include "esp32-hal-gpio.h"
 
-const uint8_t UP_PIN = 7;
-const uint8_t DOWN_PIN = 6;
-const uint8_t LEFT_PIN = 5;
-const uint8_t RIGHT_PIN = 4;
+const uint8_t UP_PIN = 26;
+const uint8_t DOWN_PIN = 25;
+const uint8_t LEFT_PIN = 33;
+const uint8_t RIGHT_PIN = 32;
 
 const char *ssid = "BALANCING_ROBOT";
 const char *password = "";
