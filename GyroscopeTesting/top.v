@@ -3,15 +3,24 @@
 module top (
     input clk,
     input btn,
+    input up,
+    down,
+    left,
+    right,
     output [5:0] led,
     output lcd_rs,
     output lcd_rw,
     output lcd_e,
     output [7:0] lcd_db,
-    output wire ena, enb, in1, in2, in3, in4
+    output wire ena,
+    enb,
+    in1,
+    in2,
+    in3,
+    in4
 );
 
-  assign led = ~{ena, in1, in2, in3, in4, enb};
+  assign led = ~{up, down, left, right, 0, 0};
 
   reg [3:0] x_0 = 4'd1;
   reg [3:0] x_1 = 4'd8;
@@ -42,10 +51,10 @@ module top (
       .db (lcd_db)
   );
 
-  reg [7:0] left_duty = 8'd255;
-  reg [7:0] right_duty = 8'd255;
-  reg [2:0] left_state = 1;
-  reg [2:0] right_state = 1;
+  reg [7:0] left_duty;
+  reg [7:0] right_duty;
+  reg [2:0] left_state;
+  reg [2:0] right_state;
   MotorControl motor_control_inst (
       .clk(clk),
       .rst(1'b0),
@@ -59,6 +68,18 @@ module top (
       .right2(in3),
       .leftpwm(ena),
       .rightpwm(enb)
+  );
+
+  demo_driver demo_driver_inst (
+      .clk(clk),
+      .up(up),
+      .down(down),
+      .left(left),
+      .right(right),
+      .left_state(left_state),
+      .left_pwm(left_duty),
+      .right_state(right_state),
+      .right_pwm(right_duty)
   );
 
   always @(posedge clk) begin
