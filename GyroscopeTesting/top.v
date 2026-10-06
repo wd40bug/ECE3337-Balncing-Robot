@@ -34,6 +34,9 @@ module top (
   reg [3:0] z_1 = 4'd7;
   reg [3:0] z_2 = 4'd0;
 
+  reg [31:0] gyro_reading_lcd = 32'hDEAF0123;
+  reg [15:0] encoder_reading_lcd = 16'd15_925;
+
   lcd lcd_inst (
       .clk(clk),
       .x_0(x_0),
@@ -45,6 +48,8 @@ module top (
       .z_0(z_0),
       .z_1(z_1),
       .z_2(z_2),
+      .GyroReading(gyro_reading_lcd),
+      .EncoderReading(encoder_reading_lcd),
       .rs (lcd_rs),
       .rw (lcd_rw),
       .e  (lcd_e),

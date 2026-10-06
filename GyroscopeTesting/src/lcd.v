@@ -11,11 +11,31 @@ module lcd #(
     input [3:0] z_0,
     input [3:0] z_1,
     input [3:0] z_2,
+    input [31:0] GyroReading,
+    input [15:0] EncoderReading,
     output reg rs,
     output reg rw,
     output reg e = 0,
     inout [7:0] db
 );
+  wire [5 * 4 - 1:0] EncoderBCD;
+
+  binary_to_bcd #(
+      .N_BITS(16),
+      .DIGITS(5)
+  ) binary_to_bcd_inst (
+      .binary_in(EncoderReading),
+      .bcd_out  (EncoderBCD)
+  );
+
+  wire [63:0] GyroReadingLCD;
+  hex_to_lcd #(
+      .N(32)
+  ) hex_to_lcd_inst (
+      .data_in (GyroReading),
+      .char_out(GyroReadingLCD)
+  );
+
   reg [7:0] dbout = 8'b00000000;
   assign db = rw ? 8'bzzzzzzzz : dbout;
 
@@ -161,6 +181,7 @@ module lcd #(
         txrx_next_state_delay_counter <= 0;
         text_counter <= text_counter + 1;
         state <= TXRX_START;
+        // EDIT ME TO ADD TEXT :D (Edit text_counter check at the end too)
         case (text_counter)
           0:  txrx_db <= 8'b01011000;
           1:  txrx_db <= 8'b00111010;
@@ -176,17 +197,41 @@ module lcd #(
           11: txrx_db <= 8'b00111010;
           12: txrx_db <= {4'b0011, z_0};
           13: txrx_db <= {4'b0011, z_1};
-          14: begin
-            txrx_db <= {4'b0011, z_2};
-            txrx_next_state_delay_counter <= `MS_TO_CLK(1000);
-            txrx_next_state <= RST;
-          end
+          14: txrx_db <= {4'b0011, z_2};
+          15: txrx_db <= 8'b00100000;
+
+          // --- LINE 2 JUMP COMMAND ---
+          16: begin
+            txrx_db <= 8'b11000000;
+            txrx_rs <= 0;
+          end  // 0xC0: Set DDRAM address to 0x40 (Line 2)
+
+          17: txrx_db <= GyroReadingLCD[63:56];
+          18: txrx_db <= GyroReadingLCD[55:48];
+          19: txrx_db <= GyroReadingLCD[47:40];
+          20: txrx_db <= GyroReadingLCD[39:32];
+          21: txrx_db <= GyroReadingLCD[31:24];
+          22: txrx_db <= GyroReadingLCD[23:16];
+          23: txrx_db <= GyroReadingLCD[15:8];
+          24: txrx_db <= GyroReadingLCD[7:0];
+          25: txrx_db <= 8'b00100000;
+          26: txrx_db <= 8'b00100000;
+          27: txrx_db <= 8'b00100000;
+          28: txrx_db <= {4'b0011, EncoderBCD[19:16]};
+          29: txrx_db <= {4'b0011, EncoderBCD[15:12]};
+          30: txrx_db <= {4'b0011, EncoderBCD[11:8]};
+          31: txrx_db <= {4'b0011, EncoderBCD[7:4]};
+          32: txrx_db <= {4'b0011, EncoderBCD[3:0]};
           default: begin
           end
         endcase
+        if (text_counter == 32) begin
+          txrx_next_state_delay_counter <= `MS_TO_CLK(1000);
+          txrx_next_state <= RST;
+        end
       end
 
-      RST: begin 
+      RST: begin
         if (delay_counter == 0) begin
           txrx_rs = 0;
           txrx_rw <= 0;

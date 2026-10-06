@@ -10,7 +10,7 @@ module demo_driver (
     output reg [7:0] right_pwm
 );
 
-    parameter reg [7:0] MAX = 32;
+    parameter reg [7:0] MAX = 12;
 
     always @(posedge clk) begin
         if ((up && down) || (!up && !down && left == right)) begin 
@@ -46,15 +46,15 @@ module demo_driver (
         end else if ((up || down) && left && !right) begin
             // Slide left
             left_pwm <= 0.25 * MAX;
-            right_pwm <= 0.75 * MAX;
-            left_state <= up ? 1 : 0;
-            right_state <= up ? 1 : 0;
-        end else if ((up || down) && left && !right) begin
+            right_pwm <= 0.50 * MAX;
+            left_state <= up ? 0 : 1;
+            right_state <= up ? 0 : 1;
+        end else if ((up || down) && !left && right) begin
             // Slide right
-            left_pwm <= 0.75 * MAX;
+            left_pwm <= 0.50 * MAX;
             right_pwm <= 0.25 * MAX;
-            left_state <= up ? 1 : 0;
-            right_state <= up ? 1 : 0;
+            left_state <= up ? 0 : 1;
+            right_state <= up ? 0 : 1;
         end
     end
 
