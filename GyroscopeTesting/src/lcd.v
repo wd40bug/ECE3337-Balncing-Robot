@@ -12,20 +12,31 @@ module lcd #(
     input [3:0] z_1,
     input [3:0] z_2,
     input [31:0] GyroReading,
-    input [15:0] EncoderReading,
+    input [15:0] LeftEncoderReading,
+    input [15:0] RightEncoderReading,
     output reg rs,
     output reg rw,
     output reg e = 0,
     inout [7:0] db
 );
-  wire [5 * 4 - 1:0] EncoderBCD;
+  wire [5 * 4 - 1:0] LeftEncoderBCD;
 
   binary_to_bcd #(
       .N_BITS(16),
       .DIGITS(5)
   ) binary_to_bcd_inst (
-      .binary_in(EncoderReading),
-      .bcd_out  (EncoderBCD)
+      .binary_in(LeftEncoderReading),
+      .bcd_out  (LeftEncoderBCD)
+  );
+
+  wire [5 * 4 - 1:0] RightEncoderBCD;
+
+  binary_to_bcd #(
+      .N_BITS(16),
+      .DIGITS(5)
+  ) binary_to_bcd_inst1 (
+      .binary_in(RightEncoderReading),
+      .bcd_out  (RightEncoderBCD)
   );
 
   wire [63:0] GyroReadingLCD;
@@ -206,22 +217,32 @@ module lcd #(
             txrx_rs <= 0;
           end  // 0xC0: Set DDRAM address to 0x40 (Line 2)
 
-          17: txrx_db <= GyroReadingLCD[63:56];
-          18: txrx_db <= GyroReadingLCD[55:48];
-          19: txrx_db <= GyroReadingLCD[47:40];
-          20: txrx_db <= GyroReadingLCD[39:32];
-          21: txrx_db <= GyroReadingLCD[31:24];
-          22: txrx_db <= GyroReadingLCD[23:16];
-          23: txrx_db <= GyroReadingLCD[15:8];
-          24: txrx_db <= GyroReadingLCD[7:0];
-          25: txrx_db <= 8'b00100000;
-          26: txrx_db <= 8'b00100000;
-          27: txrx_db <= 8'b00100000;
-          28: txrx_db <= {4'b0011, EncoderBCD[19:16]};
-          29: txrx_db <= {4'b0011, EncoderBCD[15:12]};
-          30: txrx_db <= {4'b0011, EncoderBCD[11:8]};
-          31: txrx_db <= {4'b0011, EncoderBCD[7:4]};
-          32: txrx_db <= {4'b0011, EncoderBCD[3:0]};
+//          17: txrx_db <= GyroReadingLCD[63:56];
+//          18: txrx_db <= GyroReadingLCD[55:48];
+//          19: txrx_db <= GyroReadingLCD[47:40];
+//          20: txrx_db <= GyroReadingLCD[39:32];
+//          21: txrx_db <= GyroReadingLCD[31:24];
+//          22: txrx_db <= GyroReadingLCD[23:16];
+//          23: txrx_db <= GyroReadingLCD[15:8];
+//          24: txrx_db <= GyroReadingLCD[7:0];
+//          25: txrx_db <= 8'b00100000;
+//          26: txrx_db <= 8'b00100000;
+//          27: txrx_db <= 8'b00100000;
+          17: txrx_db <= 8'b01001100;
+          18: txrx_db <= 8'b00111010;
+          19: txrx_db <= {4'b0011, LeftEncoderBCD[19:16]};
+          20: txrx_db <= {4'b0011, LeftEncoderBCD[15:12]};
+          21: txrx_db <= {4'b0011, LeftEncoderBCD[11:8]};
+          22: txrx_db <= {4'b0011, LeftEncoderBCD[7:4]};
+          23: txrx_db <= {4'b0011, LeftEncoderBCD[3:0]};
+          24: txrx_db <= 8'b00100000;
+          25: txrx_db <= 8'b01010011;
+          26: txrx_db <= 8'b00111010;
+          27: txrx_db <= {4'b0011, LeftEncoderBCD[19:16]};
+          28: txrx_db <= {4'b0011, LeftEncoderBCD[15:12]};
+          29: txrx_db <= {4'b0011, LeftEncoderBCD[11:8]};
+          30: txrx_db <= {4'b0011, LeftEncoderBCD[7:4]};
+          31: txrx_db <= {4'b0011, LeftEncoderBCD[3:0]};
           default: begin
           end
         endcase

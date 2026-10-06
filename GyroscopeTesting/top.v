@@ -7,6 +7,10 @@ module top (
     down,
     left,
     right,
+    fb_left_1,
+    fb_left_2,
+    fb_right_1,
+    fb_right_2,
     output [5:0] led,
     output lcd_rs,
     output lcd_rw,
@@ -35,7 +39,8 @@ module top (
   reg [3:0] z_2 = 4'd0;
 
   reg [31:0] gyro_reading_lcd = 32'hDEAF0123;
-  reg [15:0] encoder_reading_lcd = 16'd15_925;
+  reg [15:0] encoder_reading_lcd_left = 16'd15_925;
+  reg [15:0] encoder_reading_lcd_right = 16'd15_925;
 
   lcd lcd_inst (
       .clk(clk),
@@ -49,7 +54,8 @@ module top (
       .z_1(z_1),
       .z_2(z_2),
       .GyroReading(gyro_reading_lcd),
-      .EncoderReading(encoder_reading_lcd),
+      .LeftEncoderReading(encoder_reading_lcd_left),
+      .RightEncoderReading(encoder_reading_lcd_right),
       .rs (lcd_rs),
       .rw (lcd_rw),
       .e  (lcd_e),
