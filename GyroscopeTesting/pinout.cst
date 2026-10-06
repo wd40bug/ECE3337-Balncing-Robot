@@ -15,22 +15,24 @@ IO_PORT "led[3]" PULL_MODE=UP DRIVE=8;
 IO_PORT "led[4]" PULL_MODE=UP DRIVE=8;
 IO_PORT "led[5]" PULL_MODE=UP DRIVE=8;
 
-IO_LOC "lcd_rs" 71;
-IO_LOC "lcd_rw" 53;
-IO_LOC "lcd_e" 52;
+IO_LOC "lcd_rs" 29;
+IO_LOC "lcd_rw" 30;
+IO_LOC "lcd_e" 31;
 IO_PORT "lcd_rs" PULL_MODE=UP DRIVE=8;
 IO_PORT "lcd_rw" PULL_MODE=UP DRIVE=8;
 IO_PORT "lcd_e" PULL_MODE=UP DRIVE=8;
 
-IO_LOC "shift_ser" 29;
-IO_LOC "shift_rclk" 30;
-IO_LOC "shift_srclk" 31;
+IO_LOC "shift_ser" 28;
+IO_LOC "shift_rclk" 25;
+IO_LOC "shift_srclk" 26;
 IO_PORT "shift_ser" PULL_MODE=UP DRIVE=8;
 IO_PORT "shift_srclk" PULL_MODE=UP DRIVE=8;
 IO_PORT "shift_rclk" PULL_MODE=UP DRIVE=8;
 
-IO_LOC "btn" 88;
-IO_PORT "btn" PULL_MODE=UP;
+IO_LOC "page_back" 88;
+IO_LOC "page_forward" 87;
+IO_PORT "page_back" PULL_MODE=UP;
+IO_PORT "page_forward" PULL_MODE=UP;
 
 IO_LOC "ena" 42;
 IO_LOC "in1" 41;

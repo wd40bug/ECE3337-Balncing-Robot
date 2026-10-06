@@ -2,15 +2,12 @@
 
 module top (
     input clk,
-    input btn,
-    input up,
+    page_back,
+    page_forward,
+    up,
     down,
     left,
     right,
-    // fb_left_1,
-    // fb_left_2,
-    // fb_right_1,
-    // fb_right_2,
     output [5:0] led,
     output lcd_rs,
     output lcd_rw,
@@ -28,42 +25,48 @@ module top (
 
   assign led = ~{up, down, left, right, 0, 0};
 
-  reg [3:0] x_0 = 4'd1;
-  reg [3:0] x_1 = 4'd8;
-  reg [3:0] x_2 = 4'd0;
+  reg pitch_sign = 1;
+  reg [6:0] pitch_value = 7'd64;
 
-  reg [3:0] y_0 = 4'd0;
-  reg [3:0] y_1 = 4'd9;
-  reg [3:0] y_2 = 4'd0;
-
-  reg [3:0] z_0 = 4'd2;
-  reg [3:0] z_1 = 4'd7;
-  reg [3:0] z_2 = 4'd0;
+  reg yaw_sign = 1;
+  reg [6:0] yaw_value = 7'd75;
 
   reg [31:0] gyro_reading_lcd = 32'hDEAF0123;
+  reg encoder_reading_left_dir = 1;
   reg [15:0] encoder_reading_lcd_left = 16'd15_925;
-  reg [15:0] encoder_reading_lcd_right = 16'd15_925;
+  reg encoder_reading_right_dir = 0;
+  reg [15:0] encoder_reading_lcd_right = 16'd6_123;
+
+  wire [7:0] lcd_driver_out;
+  wire [4:0] lcd_rqst;
+
+  lcd_driver lcd_driver_inst (
+    .clk(clk),
+    .page_backward(page_back),
+    .page_forward(page_forward),
+    .lcd_rqst(lcd_rqst),
+    .pitch_sign(pitch_sign),
+    .pitch_value(pitch_value),
+    .yaw_sign(yaw_sign),
+    .yaw_value(yaw_value),
+    .RawGyroReading(gyro_reading_lcd),
+    .LeftEncoderReading(encoder_reading_lcd_left),
+    .left_dir(encoder_reading_left_dir),
+    .RightEncoderReading(encoder_reading_lcd_right),
+    .right_dir(encoder_reading_right_dir),
+    .lcd_char(lcd_driver_out)
+  );
 
   lcd lcd_inst (
-      .clk(clk),
-      .x_0(x_0),
-      .x_1(x_1),
-      .x_2(x_2),
-      .y_0(y_0),
-      .y_1(y_1),
-      .y_2(y_2),
-      .z_0(z_0),
-      .z_1(z_1),
-      .z_2(z_2),
-      .GyroReading(gyro_reading_lcd),
-      .LeftEncoderReading(encoder_reading_lcd_left),
-      .RightEncoderReading(encoder_reading_lcd_right),
-      .rs (lcd_rs),
-      .rw (lcd_rw),
-      .e  (lcd_e),
-      .sr_data(shift_ser),
-      .sr_clk(shift_srclk),
-      .sr_latch(shift_rclk)
+    .clk(clk),
+    .char(lcd_driver_out),
+    .lcd_rqst(lcd_rqst),
+    .rs (lcd_rs),
+    .rw (lcd_rw),
+    .e  (lcd_e),
+    .sr_data(shift_ser),
+    .sr_clk(shift_srclk),
+    .sr_latch(shift_rclk)
   );
 
   reg [7:0] left_duty;
@@ -96,12 +99,4 @@ module top (
       .right_state(right_state),
       .right_pwm(right_duty)
   );
-
-  always @(posedge clk) begin
-    if (btn) begin
-      y_0 <= 4'd3;
-      y_1 = 4'd6;
-      y_2 = 4'd0;
-    end
-  end
 endmodule
