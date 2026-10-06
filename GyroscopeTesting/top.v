@@ -7,15 +7,17 @@ module top (
     down,
     left,
     right,
-    fb_left_1,
-    fb_left_2,
-    fb_right_1,
-    fb_right_2,
+    // fb_left_1,
+    // fb_left_2,
+    // fb_right_1,
+    // fb_right_2,
     output [5:0] led,
     output lcd_rs,
     output lcd_rw,
     output lcd_e,
-    output [7:0] lcd_db,
+    output shift_ser,
+    output shift_srclk,
+    output shift_rclk,
     output wire ena,
     enb,
     in1,
@@ -59,7 +61,9 @@ module top (
       .rs (lcd_rs),
       .rw (lcd_rw),
       .e  (lcd_e),
-      .db (lcd_db)
+      .sr_data(shift_ser),
+      .sr_clk(shift_srclk),
+      .sr_latch(shift_rclk)
   );
 
   reg [7:0] left_duty;

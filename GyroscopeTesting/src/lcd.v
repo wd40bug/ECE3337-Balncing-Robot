@@ -17,7 +17,9 @@ module lcd #(
     output reg rs,
     output reg rw,
     output reg e = 0,
-    inout [7:0] db
+    output reg sr_data = 0,
+    output reg sr_clk = 0,
+    output reg sr_latch = 0
 );
   wire [5 * 4 - 1:0] LeftEncoderBCD;
 
@@ -47,9 +49,6 @@ module lcd #(
       .char_out(GyroReadingLCD)
   );
 
-  reg [7:0] dbout = 8'b00000000;
-  assign db = rw ? 8'bzzzzzzzz : dbout;
-
   `define MS_TO_CLK(s) (s * CLK_SPEED / 1000)
 
   localparam reg [4:0]
@@ -70,8 +69,12 @@ module lcd #(
   // Common Write, Read
   TXRX_START = 12, TXRX_TSU = 13, TXRX_TE = 14, TXRX_TW = 15,
 
+  // Shift Register States
+  TXRX_SHIFT_LOW = 16, TXRX_SHIFT_HIGH = 17, TXRX_SHIFT_LATCH = 18,
+
   // Other
-  TEXT = 16, RST = 17, RST_IDLE = 18;
+  TEXT = 19, RST = 20, RST_IDLE = 21;
+
 
   reg [4:0] state = INIT_WAIT_1;
 
@@ -217,17 +220,17 @@ module lcd #(
             txrx_rs <= 0;
           end  // 0xC0: Set DDRAM address to 0x40 (Line 2)
 
-//          17: txrx_db <= GyroReadingLCD[63:56];
-//          18: txrx_db <= GyroReadingLCD[55:48];
-//          19: txrx_db <= GyroReadingLCD[47:40];
-//          20: txrx_db <= GyroReadingLCD[39:32];
-//          21: txrx_db <= GyroReadingLCD[31:24];
-//          22: txrx_db <= GyroReadingLCD[23:16];
-//          23: txrx_db <= GyroReadingLCD[15:8];
-//          24: txrx_db <= GyroReadingLCD[7:0];
-//          25: txrx_db <= 8'b00100000;
-//          26: txrx_db <= 8'b00100000;
-//          27: txrx_db <= 8'b00100000;
+          //          17: txrx_db <= GyroReadingLCD[63:56];
+          //          18: txrx_db <= GyroReadingLCD[55:48];
+          //          19: txrx_db <= GyroReadingLCD[47:40];
+          //          20: txrx_db <= GyroReadingLCD[39:32];
+          //          21: txrx_db <= GyroReadingLCD[31:24];
+          //          22: txrx_db <= GyroReadingLCD[23:16];
+          //          23: txrx_db <= GyroReadingLCD[15:8];
+          //          24: txrx_db <= GyroReadingLCD[7:0];
+          //          25: txrx_db <= 8'b00100000;
+          //          26: txrx_db <= 8'b00100000;
+          //          27: txrx_db <= 8'b00100000;
           17: txrx_db <= 8'b01001100;
           18: txrx_db <= 8'b00111010;
           19: txrx_db <= {4'b0011, LeftEncoderBCD[19:16]};
@@ -274,22 +277,49 @@ module lcd #(
         delay_counter <= 5;
         state <= TXRX_TSU;
       end
+
       TXRX_TSU: begin
         if (delay_counter == 0) begin
-          dbout <= txrx_db;
+          // Setup RS/RW early so LCD sees them while shift register populates
           rw <= txrx_rw;
           rs <= txrx_rs;
-          delay_counter <= 2;
-          state <= TXRX_TE;
+          shift_count <= 7;  // Start at MSB (Bit 7)
+          state <= TXRX_SHIFT_LOW;
         end
       end
+
+      TXRX_SHIFT_LOW: begin
+        sr_data <= txrx_db[shift_count];
+        sr_clk  <= 0;
+        state   <= TXRX_SHIFT_HIGH;
+      end
+
+      TXRX_SHIFT_HIGH: begin
+        sr_clk <= 1;  // Shift the bit in on rising edge
+        if (shift_count == 0) begin
+          state <= TXRX_SHIFT_LATCH;
+        end else begin
+          shift_count <= shift_count - 1;
+          state <= TXRX_SHIFT_LOW;
+        end
+      end
+
+      TXRX_SHIFT_LATCH: begin
+        sr_latch <= 1;  // Pulse latch to move data to parallel outputs
+        sr_clk <= 0;
+        delay_counter <= 2;  // Brief setup wait before pulsing E
+        state <= TXRX_TE;
+      end
+
       TXRX_TE: begin
         if (delay_counter == 0) begin
-          e <= 1;
+          sr_latch <= 0;
+          e <= 1;  // Pulse LCD enable
           delay_counter <= `MS_TO_CLK(0.3);
           state <= TXRX_TW;
         end
       end
+
       TXRX_TW: begin
         if (delay_counter == 0) begin
           e <= 0;
