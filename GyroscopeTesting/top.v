@@ -70,7 +70,7 @@ module top (
   wire [4:0] lcd_rqst;
   // wire [2:0] demo_state;
 
-  lcd_driver lcd_driver_inst (
+  lcd_driver #(.DEFAULT_PAGE(1)) lcd_driver_inst (
       .clk(clk),
       .page_backward(page_back),
       .page_forward(page_forward),
@@ -134,8 +134,8 @@ module top (
       .data_in_right(data_out_right),
       .read_speed_left(encoder_reading_left),
       .read_speed_right(encoder_reading_right),
-      .speed_left(16'd20),
-      .speed_right(16'd20),
+      .speed_left(16'd30),
+      .speed_right(16'd30),
       .PWM_left(pwm_left_signed),
       .PWM_right(pwm_right_signed)
   );

@@ -164,7 +164,7 @@ module lcd #(
           txrx_next_state <= NEWLINE;
         end else if (lcd_rqst == 31) begin
           txrx_next_state <= RST;
-          txrx_next_state_delay_counter <= `MS_TO_CLK(1000);
+          txrx_next_state_delay_counter <= `MS_TO_CLK(10000);
         end
       end
 
