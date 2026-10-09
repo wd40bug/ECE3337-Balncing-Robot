@@ -14,8 +14,8 @@ module PIDMotorControl (
       .IN_WIDTH(16),
       .OUT_WIDTH(9),
       .SHIFT(4),
-      .Kp(10),
-      .Ki(2),
+      .Kp(5),
+      .Ki(1),
       .Kd(10)
   ) pid_left (
       .clk(clk),
@@ -30,8 +30,8 @@ module PIDMotorControl (
       .IN_WIDTH(16),
       .OUT_WIDTH(9),
       .SHIFT(4),
-      .Kp(10),
-      .Ki(2),
+      .Kp(5),
+      .Ki(1),
       .Kd(10)
   ) pid_right (
       .clk(clk),
