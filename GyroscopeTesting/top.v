@@ -95,6 +95,10 @@ module top (
 
     wire [31:0] gyro_output_data;
 
+    wire [7:0] pitch_angle;
+    // hundreds, tens, and ones place
+    wire [3:0] pitch_h, pitch_t, pitch_o;
+
     // do when data is valid (receiving complete)
     // for now only does 8 bits
     always@(posedge clk) begin
@@ -103,7 +107,7 @@ module top (
         if(rx_data_valid && !rx_data_valid_d) begin
             temp_math = uart_data - 8'h30;
             gyro_data[7:0] <= uart_data - 8'h30;      // can convert char to bcd by subtracting '0' character
-            x_0 <= temp_math[3:0];
+            //x_0 <= temp_math[3:0];
             
             // echo back
             tx_byte <= uart_data;
@@ -138,6 +142,9 @@ module top (
         z_2 <= gyro_output_data[3:0];
         //if(uart_state != 3'd1)
             //temp_led_reg <= 1'd0;
+        x_0 <= pitch_angle[7:4];
+        x_1 <= pitch_angle[3:0];
+        
     end
 
   lcd lcd_inst (
@@ -200,9 +207,16 @@ module top (
         .tx_data(gyro_tx_byte_wire),
         .tx_ready(gyro_tx_ready_wire),
         .led_wire(led_wire_5),
-        .gyro_response(gyro_output_data)
+        .gyro_response(gyro_output_data),
+        .pitch_angle(pitch_angle)
     );
 
+    /*binary_to_bcd bcd(
+    .binary(pitch_angle),
+    .hundreds(pitch_h),
+    .tens(pitch_t),
+    .ones(pitch_o)
+    );*/
   /*always @(posedge clk) begin
     if (btn) begin
         y_0 <= 4'd3;

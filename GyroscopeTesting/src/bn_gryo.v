@@ -7,7 +7,8 @@ module bn_gyro(
     output [7:0] tx_data,
     output tx_ready,
     output led_wire,
-    output [63:0] gyro_response
+    output [63:0] gyro_response,
+    output [7:0] pitch_angle
 );
 
 
@@ -47,6 +48,12 @@ localparam STARTUP_DONE = 3'd7;
     assign tx_data = tx_data_reg;
 
 
+    // 1 when all bytes of quaternion is received
+    reg quaternion_done = 1'd0;
+    // keep track of bytes received
+    reg [3:0] quat_bytes = 4'd0;
+    reg reset_quat_count = 1'd0;
+
     reg just_got_data = 1'd0;
 
     // stuff for delay_ms
@@ -63,6 +70,19 @@ localparam STARTUP_DONE = 3'd7;
     assign gyro_response = gyro_output;
     
 
+    // stuff for calculating pitch
+    reg pitch_rst = 1'd1;
+    wire signed [15:0] qw, qx, qy, qz;
+    wire pitch_sign;
+    wire [6:0] pitch_mag;
+    wire pitch_valid_out;
+
+    assign qw = {gyro_output[55:48], gyro_output[63:56]};//gyro_output[63:48];
+    assign qx = {gyro_output[39:32], gyro_output[47: 40]};//gyro_output[47:32];
+    assign qy = {gyro_output[31:24], gyro_output[23:16]};//gyro_output[31:16];
+    assign qz = {gyro_output[15:8], gyro_output[7:0]};//gyro_output[15:0];
+    
+    assign pitch_angle = {pitch_sign, pitch_mag};
 // Receive data
 always@(posedge clk) begin
         rx_data_valid_d <= rx_data_valid;
@@ -79,6 +99,22 @@ always@(posedge clk) begin
             // shift output left and add new byte
             gyro_output <= {gyro_output[55:0], gyro_received_byte};
             just_got_data <= 1'd0;
+        end
+        if(startup_state == STARTUP_DONE && just_got_data) begin
+            if (gyro_received_byte == 8'hBB) begin
+                quat_bytes <= 4'd1;
+                quaternion_done <= 1'b0;
+            end
+            else if (quat_bytes >= 1 && quat_bytes < 4'd9) begin
+                quat_bytes <= quat_bytes + 1'd1;
+            end
+            else if (quat_bytes == 4'd9) begin
+                quaternion_done <= 1'b1;
+            end
+        end
+        else if (quaternion_done && pitch_valid_out) begin
+            quat_bytes <= 4'd0;
+            quaternion_done <= 1'b0;
         end
     end
 
@@ -394,6 +430,19 @@ delay_ms delayer(
     .ms_to_delay(ms_to_delay),
     .reset(reset_delay_ms),
     .time_elapsed(delay_done_wire)
+);
+
+pitch_lut pitch_calc(
+    .clk(clk),
+    .rst_neg(pitch_rst),
+    .in_valid(quaternion_done),
+    .qw(qw),
+    .qx(qx),
+    .qy(qy),
+    .qz(qz),
+    .pitch_sign(pitch_sign),
+    .pitch_magnitude(pitch_mag),
+    .out_valid(pitch_valid_out)
 );
 
 endmodule
