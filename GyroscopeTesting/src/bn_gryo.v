@@ -158,7 +158,6 @@ reg ndof_sent = 1'd0;
 reg waiting = 1'd0;
 reg waiting_1 = 1'd0;
 
-
 always@(posedge clk) begin
     load_command_flag <= 1'd0;
 

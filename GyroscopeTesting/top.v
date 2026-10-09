@@ -38,7 +38,7 @@ module top (
   reg yaw_sign = 1;
   reg [6:0] yaw_value = 7'd75;
 
-  reg [31:0] gyro_reading_lcd = 32'hDEAF0123;
+  wire [31:0] gyro_reading_lcd;
 
   wire encoder_reading_left_dir;
   wire [15:0] encoder_reading_left;
@@ -146,6 +146,7 @@ module top (
 
     assign pitch_value = pitch_angle[6:0];
     assign pitch_sign = pitch_angle[7];
+    assign gyro_reading_lcd = gyro_output_data[31:0];
 
   lcd_driver lcd_driver_inst (
       .clk(clk),
