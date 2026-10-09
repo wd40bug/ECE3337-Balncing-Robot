@@ -78,9 +78,9 @@ localparam STARTUP_DONE = 3'd7;
     wire pitch_valid_out;
 
     assign qw = {gyro_output[55:48], gyro_output[63:56]};//gyro_output[63:48];
-    assign qx = {gyro_output[39:32], gyro_output[47: 40]};//gyro_output[47:32];
-    assign qy = {gyro_output[31:24], gyro_output[23:16]};//gyro_output[31:16];
-    assign qz = {gyro_output[15:8], gyro_output[7:0]};//gyro_output[15:0];
+    assign qx = {gyro_output[39:32], gyro_output[47:40]};//gyro_output[47:32];
+    assign qy = {gyro_output[23:16], gyro_output[31:24]};//gyro_output[31:16];
+    assign qz = {gyro_output[7:0], gyro_output[15:8]};//gyro_output[15:0];
     
     assign pitch_angle = {pitch_sign, pitch_mag};
 // Receive data
