@@ -2,11 +2,9 @@
 
 module top (
     input clk,
-    input rx_pin,
+    // input rx_pin,
     input gyro_rx_pin,
-    //input rst_neg,
-    input btn,
-    input rst_neg,
+    // input rst_neg,
     input page_back,
     page_forward,
     up,
@@ -21,7 +19,7 @@ module top (
     output lcd_rs,
     output lcd_rw,
     output lcd_e,
-    output tx_pin,
+    // output tx_pin,
     output gyro_tx_pin,
     output shift_ser,
     output shift_srclk,
@@ -185,25 +183,25 @@ module top (
       .sr_latch(shift_rclk)
   );
 
-    uart_rx uart_rx_inst(
-        .i_Clock(clk),
-        .i_RX_Serial(rx_pin),
-        .o_RX_DV(rx_data_valid),
-        .o_RX_Byte(uart_data)
-    );
+    //uart_rx uart_rx_inst(
+    //    .i_Clock(clk),
+    //    .i_RX_Serial(rx_pin),
+    //    .o_RX_DV(rx_data_valid),
+    //    .o_RX_Byte(uart_data)
+    //);
 
-    uart_tx uart_tx_inst(
-        .i_Rst_L(~rst_neg),
-        .i_Clock(clk),
-        .i_TX_DV(tx_ready),
-        .i_TX_Byte(tx_byte),
-        .o_TX_Active(tx_currently_transmitting),
-        .o_TX_Serial(tx_pin),
-        .o_TX_Done(tx_done)
-    );
+    // uart_tx uart_tx_inst(
+    //     .i_Rst_L(~rst_neg),
+    //     .i_Clock(clk),
+    //     .i_TX_DV(tx_ready),
+    //     .i_TX_Byte(tx_byte),
+    //     .o_TX_Active(tx_currently_transmitting),
+    //     .o_TX_Serial(tx_pin),
+    //     .o_TX_Done(tx_done)
+    // );
 
     uart_tx uart_tx_gyro(
-        .i_Rst_L(~rst_neg),
+        .i_Rst_L(1'b1),
         .i_Clock(clk),
         .i_TX_DV(gyro_tx_ready_wire),
         .i_TX_Byte(gyro_tx_byte_wire),

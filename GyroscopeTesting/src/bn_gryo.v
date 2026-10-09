@@ -35,7 +35,7 @@ localparam STARTUP_DONE = 3'd7;
     assign tx_ready = tx_ready_reg;
 
     reg [64:0] normal_tx_command_reg;
-    reg [64:0] load_tx_command_reg;
+    reg [64:0] load_tx_command_reg = 64'd0;
     reg load_command_flag;
     reg [4:0] command_length;
     reg [4:0] loaded_command_length;
