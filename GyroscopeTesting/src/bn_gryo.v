@@ -285,7 +285,7 @@ always@(posedge clk) begin
                 command_sent <= 1'd1;
                 load_command_flag <= 1'd1;
             end
-            else if(gyro_output[15:0] == 16'hEE_07]) begin
+            else if(gyro_output[15:0] == 16'hEE_07) begin
                 reset_delay_ms <= 1'd1;
                 command_sent <= 1'd0;
             end
