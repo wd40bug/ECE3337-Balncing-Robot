@@ -55,3 +55,12 @@ IO_PORT "up" IO_TYPE=LVCMOS33;
 IO_PORT "down" IO_TYPE=LVCMOS33;
 IO_PORT "left" IO_TYPE=LVCMOS33;
 IO_PORT "right" IO_TYPE=LVCMOS33;
+
+IO_LOC "enc_left_1" 73;
+IO_LOC "enc_left_2" 74;
+IO_LOC "enc_right_1" 75;
+IO_LOC "enc_right_2" 85;
+IO_PORT "enc_left_1" IO_TYPE=LVCMOS33;
+IO_PORT "enc_left_2" IO_TYPE=LVCMOS33;
+IO_PORT "enc_right_1" IO_TYPE=LVCMOS33;
+IO_PORT "enc_right_2" IO_TYPE=LVCMOS33;
