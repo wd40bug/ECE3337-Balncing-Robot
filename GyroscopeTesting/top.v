@@ -1,5 +1,3 @@
-`include "inc/constants.vh"
-
 module top (
     input clk,
     // input rx_pin,
