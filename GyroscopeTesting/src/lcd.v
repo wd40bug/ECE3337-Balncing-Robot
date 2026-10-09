@@ -42,13 +42,13 @@ module lcd #(
 
   reg [4:0] state = INIT_WAIT_1;
 
-  integer delay_counter = `MS_TO_CLK(15);
+  reg [63:0] delay_counter = `MS_TO_CLK(15);
 
   reg txrx_rs;
   reg txrx_rw;
   reg [7:0] txrx_db;
   reg [4:0] txrx_next_state;
-  integer txrx_next_state_delay_counter;
+  reg [63:0] txrx_next_state_delay_counter;
   reg [3:0] shift_count = 0;
 
   always @(posedge clk) begin
@@ -164,7 +164,7 @@ module lcd #(
           txrx_next_state <= NEWLINE;
         end else if (lcd_rqst == 31) begin
           txrx_next_state <= RST;
-          txrx_next_state_delay_counter <= `MS_TO_CLK(10000);
+          txrx_next_state_delay_counter <= `MS_TO_CLK(1000);
         end
       end
 
