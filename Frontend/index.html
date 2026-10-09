@@ -1,0 +1,78 @@
+<!DOCTYPE html><html>
+<head>
+  <meta name=\viewport\ content=\width=device-width, initial-scale=1\>
+  <style>
+    body { font-family: Arial; text-align: center; margin-top: 50px; }
+    button { background-color: #4CAF50; color: white; padding: 15px 25px; text-decoration: none; font-size: 24px; margin: 10px; display: inline-block; border-radius: 5px; }
+    button:active, button.active {background-color: #e66ed0;}
+    div {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr 1fr;
+    }
+    #up {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    #left {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    #right {
+      grid-column: 3;
+      grid-row: 2;
+    }
+    #down {
+      grid-column: 2;
+      grid-row: 3;
+    }
+  </style>
+  <script>
+    function pressButton(name) {
+      console.log("/press/" + name);
+      fetch("/press/" + name).catch(error => console.error('Error reaching ESP32:', error));
+    }
+    function unpressButton(name) {
+      console.log("/unpress/" + name);
+      fetch("/unpress/" + name).catch(error => console.error('Error reaching ESP32:', error));
+    }
+
+    const keyMap = {
+    'ArrowUp': 'up',
+    'ArrowLeft': 'left',
+    'ArrowRight': 'right',
+    'ArrowDown': 'down'
+  };
+
+  document.addEventListener('keydown', (event) => {
+    const buttonName = keyMap[event.key];
+    
+    // If it's an arrow key AND not being held down continuously
+    if (buttonName && !event.repeat) {
+      event.preventDefault(); // Stop the page from scrolling
+      pressButton(buttonName);
+      document.getElementById(buttonName).classList.add('active'); // Visually press the button
+    }
+  });
+
+  document.addEventListener('keyup', (event) => {
+    const buttonName = keyMap[event.key];
+    
+    if (buttonName) {
+      unpressButton(buttonName);
+      document.getElementById(buttonName).classList.remove('active'); // Visually release the button
+    }
+  });
+  </script>
+</head>
+<body>
+  <h1>ESP32 Web Server</h1>
+  <p>LED Control</p>
+  <div>
+    <button id="up" onpointerdown="pressButton('up')" onpointerup="unpressButton('up')">UP</button>
+    <button id="left" onpointerdown="pressButton('left')" onpointerup="unpressButton('left')">LEFT</button>
+    <button id="right" onpointerdown="pressButton('right')" onpointerup="unpressButton('right')">RIGHT</button>
+    <button id="down" onpointerdown="pressButton('down')" onpointerup="unpressButton('down')">DOWN</button>
+  </div>
+</body>
+</html>

@@ -1,38 +1,29 @@
-module binary_to_bcd(
-    input wire [7:0] binary,
-    output reg [3:0] hundreds,
-    output reg [3:0] tens,
-    output reg [3:0] ones
+module binary_to_bcd #(
+    parameter N_BITS = 8,
+    parameter DIGITS = 3
+)(
+    input  wire [N_BITS-1:0]           binary_in,
+    output reg  [(DIGITS*4)-1:0]       bcd_out
 );
 
-    reg [3:0] i;
-
-    reg [19:0] temp;
-
-    always@(*) begin
-        temp = {12'b0, binary};
-
-        //loop 8 times
-        for(i = 0; i < 8; i = i + 1) begin
-            // hundreds digit
-            if(temp[19:16] > 4)
-                temp[19:16] = temp[19:16] + 3;
-            // tens digit
-            if(temp[15:12] > 4)
-                temp[15:12] = temp[15:12] + 3;
-            // ones digit
-            if(temp[11:8] > 4)
-                temp[11:8] = temp[11:8] + 3;
-
-            // shift left 1
-            temp = temp << 1;
+    integer i, j;
+    always @(*) begin
+        // Initialize entire BCD structure to zero
+        for (i = 0; i < DIGITS; i = i + 1) begin
+            bcd_out[i*4 +: 4] = 4'd0;
         end
         
-        // split
-        hundreds = temp[19:16];
-        tens = temp[15:12];
-        ones = temp[11:8];
-    
+        // Load MSB first and shift through all bits
+        for (i = N_BITS - 1; i >= 0; i = i - 1) begin
+            // Check and add 3 to each 4-bit nibble if >= 5
+            for (j = 0; j < DIGITS; j = j + 1) begin
+                if (bcd_out[j*4 +: 4] >= 5) begin
+                    bcd_out[j*4 +: 4] = bcd_out[j*4 +: 4] + 4'd3;
+                end
+            end
+            
+            // Shift left entire structure including incoming binary bit
+            bcd_out = {bcd_out[(DIGITS*4)-2:0], binary_in[i]};
+        end
     end
-
 endmodule

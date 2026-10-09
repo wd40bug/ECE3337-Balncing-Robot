@@ -2,22 +2,16 @@ module lcd #(
     parameter integer CLK_SPEED = 27_000_000
 ) (
     input clk,
-    input [3:0] x_0,
-    input [3:0] x_1,
-    input [3:0] x_2,
-    input [3:0] y_0,
-    input [3:0] y_1,
-    input [3:0] y_2,
-    input [3:0] z_0,
-    input [3:0] z_1,
-    input [3:0] z_2,
+    input [7:0] char,
+    output reg [4:0] lcd_rqst = 0,
     output reg rs,
     output reg rw,
     output reg e = 0,
-    inout [7:0] db
+    output reg sr_data = 0,
+    output reg sr_clk = 0,
+    output reg sr_latch = 0
 );
-  reg [7:0] dbout = 8'b00000000;
-  assign db = rw ? 8'bzzzzzzzz : dbout;
+
 
   `define MS_TO_CLK(s) (s * CLK_SPEED / 1000)
 
@@ -39,8 +33,12 @@ module lcd #(
   // Common Write, Read
   TXRX_START = 12, TXRX_TSU = 13, TXRX_TE = 14, TXRX_TW = 15,
 
+  // Shift Register States
+  TXRX_SHIFT_LOW = 16, TXRX_SHIFT_HIGH = 17, TXRX_SHIFT_LATCH = 18,
+
   // Other
-  TEXT = 16, RST = 17, RST_IDLE = 18;
+  TEXT = 19, NEWLINE=20, RST = 21, RST_IDLE = 22;
+
 
   reg [4:0] state = INIT_WAIT_1;
 
@@ -51,8 +49,7 @@ module lcd #(
   reg [7:0] txrx_db;
   reg [4:0] txrx_next_state;
   integer txrx_next_state_delay_counter;
-
-  integer text_counter = 0;
+  reg [3:0] shift_count = 0;
 
   always @(posedge clk) begin
     if (delay_counter > 0) begin
@@ -159,34 +156,28 @@ module lcd #(
         txrx_rw <= 0;
         txrx_next_state <= TEXT;
         txrx_next_state_delay_counter <= 0;
-        text_counter <= text_counter + 1;
+        lcd_rqst <= lcd_rqst + 1;
         state <= TXRX_START;
-        case (text_counter)
-          0:  txrx_db <= 8'b01011000;
-          1:  txrx_db <= 8'b00111010;
-          2:  txrx_db <= {4'b0011, x_0};
-          3:  txrx_db <= {4'b0011, x_1};
-          4:  txrx_db <= {4'b0011, x_2};
-          5:  txrx_db <= 8'b01011001;
-          6:  txrx_db <= 8'b00111010;
-          7:  txrx_db <= {4'b0011, y_0};
-          8:  txrx_db <= {4'b0011, y_1};
-          9:  txrx_db <= {4'b0011, y_2};
-          10: txrx_db <= 8'b01011010;
-          11: txrx_db <= 8'b00111010;
-          12: txrx_db <= {4'b0011, z_0};
-          13: txrx_db <= {4'b0011, z_1};
-          14: begin
-            txrx_db <= {4'b0011, z_2};
-            txrx_next_state_delay_counter <= `MS_TO_CLK(1000);
-            txrx_next_state <= RST;
-          end
-          default: begin
-          end
-        endcase
+        txrx_db <= char;
+
+        if (lcd_rqst == 15) begin
+          txrx_next_state <= NEWLINE;
+        end else if (lcd_rqst == 31) begin
+          txrx_next_state <= RST;
+          txrx_next_state_delay_counter <= `MS_TO_CLK(1000);
+        end
       end
 
-      RST: begin 
+      NEWLINE: begin
+        txrx_rs <= 0;
+        txrx_rw <= 0;
+        txrx_next_state <= TEXT;
+        txrx_next_state_delay_counter <= 0;
+        state <= TXRX_START;
+        txrx_db <= 8'b11000000;
+      end
+
+      RST: begin
         if (delay_counter == 0) begin
           txrx_rs = 0;
           txrx_rw <= 0;
@@ -199,7 +190,7 @@ module lcd #(
 
       RST_IDLE: begin
         if (delay_counter == 0) begin
-          text_counter <= 0;
+          lcd_rqst <= 0;
           state <= TEXT;
         end
       end
@@ -208,22 +199,49 @@ module lcd #(
         delay_counter <= 5;
         state <= TXRX_TSU;
       end
+
       TXRX_TSU: begin
         if (delay_counter == 0) begin
-          dbout <= txrx_db;
+          // Setup RS/RW early so LCD sees them while shift register populates
           rw <= txrx_rw;
           rs <= txrx_rs;
-          delay_counter <= 2;
-          state <= TXRX_TE;
+          shift_count <= 7;  // Start at MSB (Bit 7)
+          state <= TXRX_SHIFT_LOW;
         end
       end
+
+      TXRX_SHIFT_LOW: begin
+        sr_data <= txrx_db[shift_count];
+        sr_clk  <= 0;
+        state   <= TXRX_SHIFT_HIGH;
+      end
+
+      TXRX_SHIFT_HIGH: begin
+        sr_clk <= 1;  // Shift the bit in on rising edge
+        if (shift_count == 0) begin
+          state <= TXRX_SHIFT_LATCH;
+        end else begin
+          shift_count <= shift_count - 1;
+          state <= TXRX_SHIFT_LOW;
+        end
+      end
+
+      TXRX_SHIFT_LATCH: begin
+        sr_latch <= 1;  // Pulse latch to move data to parallel outputs
+        sr_clk <= 0;
+        delay_counter <= 2;  // Brief setup wait before pulsing E
+        state <= TXRX_TE;
+      end
+
       TXRX_TE: begin
         if (delay_counter == 0) begin
-          e <= 1;
+          sr_latch <= 0;
+          e <= 1;  // Pulse LCD enable
           delay_counter <= `MS_TO_CLK(0.3);
           state <= TXRX_TW;
         end
       end
+
       TXRX_TW: begin
         if (delay_counter == 0) begin
           e <= 0;
