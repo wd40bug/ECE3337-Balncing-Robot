@@ -4,8 +4,8 @@ module PIDMotorControl (
     input data_in_right,
     input [15:0] read_speed_left,
     input [15:0] read_speed_right,
-    input [15:0] speed_left,
-    input [15:0] speed_right,
+    input signed [15:0] speed_left,
+    input signed [15:0] speed_right,
     output signed [8:0] PWM_left,
     output signed [8:0] PWM_right
 );
@@ -14,9 +14,9 @@ module PIDMotorControl (
       .IN_WIDTH(16),
       .OUT_WIDTH(9),
       .SHIFT(4),
-      .Kp(5),
-      .Ki(1),
-      .Kd(10)
+      .Kp(20),
+      .Ki(0),
+      .Kd(0)
   ) pid_left (
       .clk(clk),
       .rst(1'b1),
@@ -30,9 +30,9 @@ module PIDMotorControl (
       .IN_WIDTH(16),
       .OUT_WIDTH(9),
       .SHIFT(4),
-      .Kp(5),
-      .Ki(1),
-      .Kd(10)
+      .Kp(20),
+      .Ki(0),
+      .Kd(0)
   ) pid_right (
       .clk(clk),
       .rst(1'b1),

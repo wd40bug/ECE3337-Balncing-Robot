@@ -16,10 +16,9 @@ module square_tb;
     out_9_1
   );
 
-  initial begin
-    forever begin
-      #5 clk = ~clk;
-    end
+  always begin
+    #5;
+    clk = ~clk;
   end
 
   initial begin

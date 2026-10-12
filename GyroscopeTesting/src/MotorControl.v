@@ -26,12 +26,12 @@ reg left1, left2, right1, right2;
 always @(*) begin
     // Motor 1
     if(state1 == 0) begin
-        left1 <= 1;
-        left2 <= 0;
-    end
-    else if(state1 == 1) begin
         left1 <= 0;
         left2 <= 1;
+    end
+    else if(state1 == 1) begin
+        left1 <= 1;
+        left2 <= 0;
     end
     else if(state1 == 2) begin
         left1 <= 0;
@@ -39,12 +39,12 @@ always @(*) begin
     end
     // Motor 2 (Reversed)
     if(state2 == 1) begin
-        right1 <= 1;
-        right2 <= 0;
-    end
-    else if(state2 == 0) begin
         right1 <= 0;
         right2 <= 1;
+    end
+    else if(state2 == 0) begin
+        right1 <= 1;
+        right2 <= 0;
     end
     else if(state2 == 2) begin
         right1 <= 0;

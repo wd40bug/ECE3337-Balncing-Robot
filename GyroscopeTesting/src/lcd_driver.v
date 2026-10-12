@@ -19,10 +19,11 @@ module lcd_driver #(
     input pwm_right_dir,
     input [7:0] pwm_right,
     input [2:0] demo_state,
+    input signed [15:0] set_speed,
     output reg [7:0] lcd_char
 );
 
-  localparam [2:0] MAX_PAGE = 3;
+  localparam [2:0] MAX_PAGE = 4;
   reg [2:0] page_num = DEFAULT_PAGE;
 
   wire forward_pulse;
@@ -38,6 +39,8 @@ module lcd_driver #(
       .btn_pulse(forward_pulse),
       .btn_held(forward_held)
   );
+
+
 
   button_conditioner #(
       .DEBOUNCE_MAX(20'd1_000_000)
@@ -121,8 +124,23 @@ module lcd_driver #(
   ) binary_to_bcd_inst5 (
     .binary_in(pwm_right),
     .bcd_out(pwm_right_bcd)
+  ); 
+
+  wire set_speed_sign;
+  wire [14:0] set_speed_mag;
+
+  signed_conversion #(.BITS(15)) signed_conversion_inst (
+    .in(set_speed),
+    .out(set_speed_mag),
+    .sign(set_speed_sign)
   );
 
+
+  wire [5 * 4 - 1 : 0] set_speed_bcd;
+  binary_to_bcd #(.N_BITS(15), .DIGITS(5)) binary_to_bcd_inst6 (
+    .binary_in(set_speed_mag),
+    .bcd_out(set_speed_bcd)
+  );
 
 
   always @(*) begin
@@ -245,6 +263,32 @@ module lcd_driver #(
           default: lcd_char <= " ";
         endcase
       end  // Page 3
+      4: begin
+        case (lcd_rqst) 
+          0: lcd_char <= "P";
+          1: lcd_char <= "i";
+          2: lcd_char <= "t";
+          3: lcd_char <= "c";
+          4: lcd_char <= "h";
+          5: lcd_char <= ":";
+          6: lcd_char <= {4'b0010, pitch_sign ? 4'b1011 : 4'b1101};
+          7: lcd_char <= {4'b0011, pitch_bcd[7:4]};
+          8: lcd_char <= {4'b0011, pitch_bcd[3:0]};
+
+          16: lcd_char <= "S";
+          17: lcd_char <= "p";
+          18: lcd_char <= "e";
+          19: lcd_char <= "e";
+          20: lcd_char <= "d";
+          21: lcd_char <= ":";
+          22: lcd_char <= {4'b0011, set_speed_bcd[19:16]};
+          23: lcd_char <= {4'b0011, set_speed_bcd[15:12]};
+          24: lcd_char <= {4'b0011, set_speed_bcd[11:8]};
+          25: lcd_char <= {4'b0011, set_speed_bcd[7:4]};
+          26: lcd_char <= {4'b0011, set_speed_bcd[3:0]};
+          default: lcd_char <= " ";
+        endcase
+      end
 
       default: lcd_char <= 8'b00100000;  // Page error
 
