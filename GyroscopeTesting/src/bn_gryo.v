@@ -8,7 +8,8 @@ module bn_gyro(
     output tx_ready,
     output led_wire,
     output [63:0] gyro_response,
-    output [7:0] pitch_angle
+    output [7:0] pitch_angle,
+    output pitch_valid_out
 );
 
 
@@ -75,7 +76,6 @@ localparam STARTUP_DONE = 3'd7;
     wire signed [15:0] qw, qx, qy, qz;
     wire pitch_sign;
     wire [6:0] pitch_mag;
-    wire pitch_valid_out;
 
     assign qw = {gyro_output[55:48], gyro_output[63:56]};//gyro_output[63:48];
     assign qx = {gyro_output[39:32], gyro_output[47:40]};//gyro_output[47:32];

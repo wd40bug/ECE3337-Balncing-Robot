@@ -45,6 +45,21 @@ module top (
   wire encoder_reading_right_dir;
   wire [15:0] encoder_reading_right;
 
+  wire signed [15:0] actual_speed_left_signed;
+  wire signed [15:0] actual_speed_right_signed;
+
+  assign actual_speed_left_signed = encoder_reading_left_dir ? -$signed(
+      {1'b0, encoder_reading_left[14:0]}
+  ) : $signed(
+      {1'b0, encoder_reading_left[14:0]}
+  );
+
+  assign actual_speed_right_signed = encoder_reading_right_dir ? -$signed(
+      {1'b0, encoder_reading_right[14:0]}
+  ) : $signed(
+      {1'b0, encoder_reading_right[14:0]}
+  );
+
   wire data_out_left;
   wire data_out_right;
 
@@ -97,9 +112,6 @@ module top (
   reg rst_neg_d;
 
 
-  // register to do temp math in
-  reg [7:0] temp_math;
-
   assign rx_ready = 1'd1;  // for now always ready
 
   // Gyroscope tx
@@ -121,34 +133,39 @@ module top (
 
   // do when data is valid (receiving complete)
   // for now only does 8 bits
-  always @(posedge clk) begin
-    rx_data_valid_d <= rx_data_valid;
-
-    if (rx_data_valid && !rx_data_valid_d) begin
-      temp_math = uart_data - 8'h30;
-      gyro_data[7:0] <= uart_data - 8'h30;  // can convert char to bcd by subtracting '0' character
-      //x_0 <= temp_math[3:0];
-
-      // echo back
-      tx_byte        <= uart_data;
-      tx_ready       <= 1'd1;
-    end
-    if (tx_currently_transmitting) begin
-      tx_ready <= 1'd0;
-    end
-    if (tx_done) begin
-      tx_finished <= 1'd1;
-      tx_ready <= 1'd0;
-    end
-
-  end
+  //   always @(posedge clk) begin
+  //     rx_data_valid_d <= rx_data_valid;
+  // 
+  //     if (rx_data_valid && !rx_data_valid_d) begin
+  //       // echo back
+  //       tx_byte        <= uart_data;
+  //       tx_ready       <= 1'd1;
+  //     end
+  //     if (tx_currently_transmitting) begin
+  //       tx_ready <= 1'd0;
+  //     end
+  //     if (tx_done) begin
+  //       tx_finished <= 1'd1;
+  //       tx_ready <= 1'd0;
+  //     end
+  // 
+  //   end
 
   assign pitch_value = pitch_angle[6:0];
   assign pitch_sign = pitch_angle[7];
   assign gyro_reading_lcd = gyro_output_data[31:0];
+  wire pitch_data_in;
+
+  PIDPitchControl pitch_control (
+      .clk(clk),
+      .data_in(pitch_data_in),
+      .pitch_sign(pitch_sign),
+      .pitch_magnitude(pitch_value),
+      .speed(set_speed)
+  );
 
   lcd_driver #(
-      .DEFAULT_PAGE(1)
+      .DEFAULT_PAGE(4)
   ) lcd_driver_inst (
       .clk(clk),
       .page_backward(page_back),
@@ -168,6 +185,7 @@ module top (
       .pwm_right(right_duty),
       .pwm_right_dir(pwm_right_dir),
       .demo_state(2'd0),
+      .set_speed(set_speed),
       .lcd_char(lcd_driver_out)
   );
 
@@ -227,7 +245,8 @@ module top (
       .tx_ready(gyro_tx_ready_wire),
       .led_wire(led_wire_5),
       .gyro_response(gyro_output_data),
-      .pitch_angle(pitch_angle)
+      .pitch_angle(pitch_angle),
+      .pitch_valid_out(pitch_data_in)
   );
 
   wire [7:0] left_duty;
@@ -254,14 +273,16 @@ module top (
   wire signed [8:0] pwm_right_signed;
   wire pwm_right_dir;
 
+  wire signed [15:0] set_speed;
+
   PIDMotorControl pid_motor_control_inst (
       .clk(clk),
       .data_in_left(data_out_left),
       .data_in_right(data_out_right),
-      .read_speed_left(encoder_reading_left),
-      .read_speed_right(encoder_reading_right),
-      .speed_left(16'd30),
-      .speed_right(16'd30),
+      .read_speed_left(actual_speed_left_signed),
+      .read_speed_right(actual_speed_right_signed),
+      .speed_left(set_speed),
+      .speed_right(set_speed),
       .PWM_left(pwm_left_signed),
       .PWM_right(pwm_right_signed)
   );
@@ -281,17 +302,4 @@ module top (
       .out (right_duty),
       .sign(pwm_right_dir)
   );
-
-  //   demo_driver demo_driver_inst (
-  //       .clk(clk),
-  //       .up(up),
-  //       .down(down),
-  //       .left(left),
-  //       .right(right),
-  //       .left_state(left_state),
-  //       .left_pwm(left_duty),
-  //       .right_state(right_state),
-  //       .right_pwm(right_duty),
-  //       .demo_state(demo_state)
-  //   );
 endmodule
