@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module MotorControl(
+module MotorControl (
 input clk,
 input rst,
 input [7:0] duty1,
