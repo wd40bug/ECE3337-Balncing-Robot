@@ -6,7 +6,7 @@ module signed_conversion #(
   output sign
 );
 
-  assign sign = ~in[BITS];
+  assign sign = ~in[BITS - 1];
   assign out = sign ? in[BITS-1:0] : -in[BITS-1:0];
   
 endmodule

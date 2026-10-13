@@ -440,7 +440,7 @@ pitch_lut pitch_calc(
     .qx(qx),
     .qy(qy),
     .qz(qz),
-    .pitch(pitch),
+    .pitch_out(pitch_angle),
     .out_valid(pitch_valid_out)
 );
 

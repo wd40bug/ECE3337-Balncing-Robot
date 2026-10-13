@@ -6,13 +6,13 @@ module PIDMotorControl (
     input signed [15:0] read_speed_right,
     input signed [15:0] speed_left,
     input signed [15:0] speed_right,
-    output signed [8:0] PWM_left,
-    output signed [8:0] PWM_right
+    output signed [7:0] PWM_left,
+    output signed [7:0] PWM_right
 );
 
   PID #(
       .IN_WIDTH(16),
-      .OUT_WIDTH(9),
+      .OUT_WIDTH(8),
       .SHIFT(4),
       .Kp(20),
       .Ki(0),
@@ -28,7 +28,7 @@ module PIDMotorControl (
 
   PID #(
       .IN_WIDTH(16),
-      .OUT_WIDTH(9),
+      .OUT_WIDTH(8),
       .SHIFT(4),
       .Kp(20),
       .Ki(0),

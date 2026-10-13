@@ -7,7 +7,7 @@ module LCD #(
     // Driver inputs
     input signed [7:0] pitch,
     input signed [7:0] yaw,
-    input [31:0] gyro_raw,
+    input [63:0] gyro_raw,
     input signed [15:0] left_speed,
     input signed [15:0] right_speed,
     input signed [7:0] left_duty,
@@ -44,7 +44,7 @@ module LCD #(
     .lcd_rqst(lcd_rqst),
     .pitch(pitch),
     .yaw(yaw),
-    .RawGyroReading(raw_gryo),
+    .RawGyroReading(gyro_raw),
     .LeftEncoderReading(left_speed),
     .RightEncoderReading(right_speed),
     .pwm_left(left_duty),

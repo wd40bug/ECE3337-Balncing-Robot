@@ -7,7 +7,7 @@ module lcd_driver #(
     input [4:0] lcd_rqst,
     input signed [7:0] pitch,
     input signed [7:0] yaw,
-    input [31:0] RawGyroReading,
+    input [63:0] RawGyroReading,
     input signed [15:0] LeftEncoderReading,
     input signed [15:0] RightEncoderReading,
     input signed [7:0] pwm_left,
@@ -63,17 +63,17 @@ module lcd_driver #(
       .N_BITS(8),
       .DIGITS(2)
   ) binary_to_bcd_inst2 (
-      .binary_in(pitch_value),
+      .binary_in(pitch),
       .bcd_out(pitch_bcd),
       .sign(pitch_sign)
   );
-  binary_to_bcd #(
+  binary_to_bcd_signed #(
       .N_BITS(8),
       .DIGITS(2)
   ) binary_to_bcd_inst3 (
-      .binary_in(yaw_value),
+      .binary_in(yaw),
       .bcd_out  (yaw_bcd),
-      .yaw_sign(yaw_sign)
+      .sign(yaw_sign)
   );
 
   wire [5 * 4 - 1:0] LeftEncoderBCD;
@@ -100,9 +100,9 @@ module lcd_driver #(
       .sign(right_encoder_sign)
   );
 
-  wire [63:0] GyroReadingASCII;
+  wire [127:0] GyroReadingASCII;
   binary_to_hex #(
-      .N(32)
+      .N(64)
   ) binary_to_hex_inst (
       .data_in (RawGyroReading),
       .char_out(GyroReadingASCII)
@@ -121,7 +121,7 @@ module lcd_driver #(
 
   wire [3 * 4 - 1:0] pwm_right_bcd;
   wire pwm_right_sign;
-  binary_to_bcd #(
+  binary_to_bcd_signed #(
       .N_BITS(8),
       .DIGITS(3)
   ) binary_to_bcd_inst5 (
@@ -132,11 +132,11 @@ module lcd_driver #(
 
   wire [5 * 4 - 1 : 0] set_speed_bcd;
   wire set_speed_sign;
-  binary_to_bcd #(
-      .N_BITS(15),
+  binary_to_bcd_signed #(
+      .N_BITS(16),
       .DIGITS(5)
   ) binary_to_bcd_inst6 (
-      .binary_in(set_speed_mag),
+      .binary_in(set_speed),
       .bcd_out  (set_speed_bcd),
       .sign(set_speed_sign)
   );
@@ -209,14 +209,22 @@ module lcd_driver #(
           2: lcd_char <= "r";
           3: lcd_char <= "o";
           4: lcd_char <= ":";
-          16: lcd_char <= GyroReadingLCD[63:56];
-          17: lcd_char <= GyroReadingLCD[55:48];
-          18: lcd_char <= GyroReadingLCD[47:40];
-          19: lcd_char <= GyroReadingLCD[39:32];
-          20: lcd_char <= GyroReadingLCD[31:24];
-          21: lcd_char <= GyroReadingLCD[23:16];
-          22: lcd_char <= GyroReadingLCD[15:8];
-          23: lcd_char <= GyroReadingLCD[7:0];
+          16: lcd_char <= GyroReadingASCII[127:120];
+          17: lcd_char <= GyroReadingASCII[119:112];
+          18: lcd_char <= GyroReadingASCII[111:104];
+          19: lcd_char <= GyroReadingASCII[103:96];
+          20: lcd_char <= GyroReadingASCII[95:88];
+          21: lcd_char <= GyroReadingASCII[87:80];
+          22: lcd_char <= GyroReadingASCII[79:72];
+          23: lcd_char <= GyroReadingASCII[71:64];
+          24: lcd_char <= GyroReadingASCII[63:56];
+          25: lcd_char <= GyroReadingASCII[55:48];
+          26: lcd_char <= GyroReadingASCII[47:40];
+          27: lcd_char <= GyroReadingASCII[39:32];
+          28: lcd_char <= GyroReadingASCII[31:24];
+          29: lcd_char <= GyroReadingASCII[23:16];
+          30: lcd_char <= GyroReadingASCII[15:8];
+          31: lcd_char <= GyroReadingASCII[7:0];
           default: lcd_char <= " ";  // Space
         endcase
       end  // Page 2
