@@ -3,14 +3,10 @@ module PIDPitchControl #(
 ) (
     input clk,
     input data_in,
-    // Negative is 1
-    input pitch_sign,
-    input [6:0] pitch_magnitude,
+    input signed [7:0] pitch,
     output signed [15:0] speed
 );
   wire signed [7:0] pitch;
-
-  assign pitch = pitch_sign ? -{1'b0, pitch_magnitude} : {1'b0, pitch_magnitude};
 
   PID #(
     .IN_WIDTH(8),

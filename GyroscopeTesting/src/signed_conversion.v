@@ -1,7 +1,7 @@
 module signed_conversion #(
   parameter integer BITS = 8
 ) (
-  input signed [BITS:0] in,
+  input signed [BITS-1:0] in,
   output [BITS-1:0] out,
   output sign
 );

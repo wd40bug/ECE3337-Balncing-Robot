@@ -1,4 +1,4 @@
-module lcd #(
+module raw_lcd #(
     parameter integer CLK_SPEED = 27_000_000
 ) (
     input clk,

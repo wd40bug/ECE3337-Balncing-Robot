@@ -5,8 +5,8 @@ module Encoder (
     input wire rst,
     input wire SignalFeedback1,
     input wire SignalFeedback2,
-    output reg dir,
-    output reg [15:0] ticks,
+    // Positive is forward
+    output reg signed [15:0] ticks,
     // One clock pulse when data is read
     output reg data_out
 );
@@ -39,7 +39,7 @@ module Encoder (
 
       if (cyclecount >= ncycles - 1) begin
         cyclecount <= 16'd0;
-        ticks <= ticksper + edge_detected;
+        ticks <= dir ? ticksper + edge_detected : -(ticksper + edge_detected);
         ticksper <= edge_detected;
         data_out <= 1;
       end else begin

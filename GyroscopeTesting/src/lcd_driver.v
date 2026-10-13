@@ -5,19 +5,13 @@ module lcd_driver #(
     input page_forward,
     input page_backward,
     input [4:0] lcd_rqst,
-    input pitch_sign,
-    input [6:0] pitch_value,
-    input yaw_sign,
-    input [6:0] yaw_value,
+    input signed [7:0] pitch,
+    input signed [7:0] yaw,
     input [31:0] RawGyroReading,
-    input left_dir,
-    input [15:0] LeftEncoderReading,
-    input right_dir,
-    input [15:0] RightEncoderReading,
-    input pwm_left_dir,
-    input [7:0] pwm_left,
-    input pwm_right_dir,
-    input [7:0] pwm_right,
+    input signed [15:0] LeftEncoderReading,
+    input signed [15:0] RightEncoderReading,
+    input signed [7:0] pwm_left,
+    input signed [7:0] pwm_right,
     input [2:0] demo_state,
     input signed [15:0] set_speed,
     output reg [7:0] lcd_char
@@ -40,8 +34,6 @@ module lcd_driver #(
       .btn_held(forward_held)
   );
 
-
-
   button_conditioner #(
       .DEBOUNCE_MAX(20'd1_000_000)
   ) backward_cond (
@@ -63,83 +55,90 @@ module lcd_driver #(
   end
 
   wire [2 * 4 - 1:0] pitch_bcd;
+  wire pitch_sign;
   wire [2 * 4 - 1:0] yaw_bcd;
+  wire yaw_sign;
 
-  binary_to_bcd #(
-      .N_BITS(7),
+  binary_to_bcd_signed #(
+      .N_BITS(8),
       .DIGITS(2)
   ) binary_to_bcd_inst2 (
       .binary_in(pitch_value),
-      .bcd_out  (pitch_bcd)
+      .bcd_out(pitch_bcd),
+      .sign(pitch_sign)
   );
   binary_to_bcd #(
-      .N_BITS(7),
+      .N_BITS(8),
       .DIGITS(2)
   ) binary_to_bcd_inst3 (
       .binary_in(yaw_value),
-      .bcd_out  (yaw_bcd)
+      .bcd_out  (yaw_bcd),
+      .yaw_sign(yaw_sign)
   );
 
   wire [5 * 4 - 1:0] LeftEncoderBCD;
+  wire left_encoder_sign;
 
-  binary_to_bcd #(
+  binary_to_bcd_signed #(
       .N_BITS(16),
       .DIGITS(5)
   ) binary_to_bcd_inst (
       .binary_in(LeftEncoderReading),
-      .bcd_out  (LeftEncoderBCD)
+      .bcd_out  (LeftEncoderBCD),
+      .sign(left_encoder_sign)
   );
 
   wire [5 * 4 - 1:0] RightEncoderBCD;
+  wire right_encoder_sign;
 
-  binary_to_bcd #(
+  binary_to_bcd_signed #(
       .N_BITS(16),
       .DIGITS(5)
   ) binary_to_bcd_inst1 (
       .binary_in(RightEncoderReading),
-      .bcd_out  (RightEncoderBCD)
+      .bcd_out  (RightEncoderBCD),
+      .sign(right_encoder_sign)
   );
 
-  wire [63:0] GyroReadingLCD;
-  hex_to_lcd #(
+  wire [63:0] GyroReadingASCII;
+  binary_to_hex #(
       .N(32)
-  ) hex_to_lcd_inst (
+  ) binary_to_hex_inst (
       .data_in (RawGyroReading),
-      .char_out(GyroReadingLCD)
+      .char_out(GyroReadingASCII)
   );
 
   wire [3 * 4 - 1:0] pwm_left_bcd;
-  binary_to_bcd #(
+  wire pwm_left_sign;
+  binary_to_bcd_signed #(
       .N_BITS(8),
       .DIGITS(3)
   ) binary_to_bcd_inst4 (
-    .binary_in(pwm_left),
-    .bcd_out(pwm_left_bcd)
+      .binary_in(pwm_left),
+      .bcd_out  (pwm_left_bcd),
+      .sign(pwm_left_sign)
   );
 
   wire [3 * 4 - 1:0] pwm_right_bcd;
+  wire pwm_right_sign;
   binary_to_bcd #(
       .N_BITS(8),
       .DIGITS(3)
   ) binary_to_bcd_inst5 (
-    .binary_in(pwm_right),
-    .bcd_out(pwm_right_bcd)
-  ); 
-
-  wire set_speed_sign;
-  wire [14:0] set_speed_mag;
-
-  signed_conversion #(.BITS(15)) signed_conversion_inst (
-    .in(set_speed),
-    .out(set_speed_mag),
-    .sign(set_speed_sign)
+      .binary_in(pwm_right),
+      .bcd_out  (pwm_right_bcd),
+      .sign(pwm_right_sign)
   );
 
-
   wire [5 * 4 - 1 : 0] set_speed_bcd;
-  binary_to_bcd #(.N_BITS(15), .DIGITS(5)) binary_to_bcd_inst6 (
-    .binary_in(set_speed_mag),
-    .bcd_out(set_speed_bcd)
+  wire set_speed_sign;
+  binary_to_bcd #(
+      .N_BITS(15),
+      .DIGITS(5)
+  ) binary_to_bcd_inst6 (
+      .binary_in(set_speed_mag),
+      .bcd_out  (set_speed_bcd),
+      .sign(set_speed_sign)
   );
 
 
@@ -153,7 +152,7 @@ module lcd_driver #(
           3: lcd_char <= "c";
           4: lcd_char <= "h";
           5: lcd_char <= ":";  // :
-          6: lcd_char <= {4'b0010, pitch_sign ? 4'b1011 : 4'b1101};
+          6: lcd_char <= pitch_sign ? "+" : "-";
           7: lcd_char <= {4'b0011, pitch_bcd[7:4]};
           8: lcd_char <= {4'b0011, pitch_bcd[3:0]};
 
@@ -161,7 +160,7 @@ module lcd_driver #(
           17: lcd_char <= "a";
           18: lcd_char <= "w";
           19: lcd_char <= ":";  // :
-          22: lcd_char <= {4'b0010, yaw_sign ? 4'b1011 : 4'b1101};
+          22: lcd_char <= yaw_sign ? "+" : "-";
           23: lcd_char <= {4'b0011, yaw_bcd[7:4]};
           24: lcd_char <= {4'b0011, yaw_bcd[3:0]};
           default: lcd_char <= " ";  // Space
@@ -169,25 +168,25 @@ module lcd_driver #(
       end  // Page 0
       1: begin
         case (lcd_rqst)
-          0: lcd_char <= "L";
-          1: lcd_char <= ":";
-          2: lcd_char <= {4'b0010, left_dir ? 4'b1011 : 4'b1101};
-          3: lcd_char <= {4'b0011, LeftEncoderBCD[19:16]};
-          4: lcd_char <= {4'b0011, LeftEncoderBCD[15:12]};
-          5: lcd_char <= {4'b0011, LeftEncoderBCD[11:8]};
-          6: lcd_char <= {4'b0011, LeftEncoderBCD[7:4]};
-          7: lcd_char <= {4'b0011, LeftEncoderBCD[3:0]};
-          9: lcd_char <= "D";
+          0:  lcd_char <= "L";
+          1:  lcd_char <= ":";
+          2:  lcd_char <= left_encoder_sign ? "+" : "-";
+          3:  lcd_char <= {4'b0011, LeftEncoderBCD[19:16]};
+          4:  lcd_char <= {4'b0011, LeftEncoderBCD[15:12]};
+          5:  lcd_char <= {4'b0011, LeftEncoderBCD[11:8]};
+          6:  lcd_char <= {4'b0011, LeftEncoderBCD[7:4]};
+          7:  lcd_char <= {4'b0011, LeftEncoderBCD[3:0]};
+          9:  lcd_char <= "D";
           10: lcd_char <= "Y";
           11: lcd_char <= ":";
-          12: lcd_char <= pwm_left_dir ? "+" : "-";
+          12: lcd_char <= pwm_left_sign ? "+" : "-";
           13: lcd_char <= {4'b0011, pwm_left_bcd[11:8]};
           14: lcd_char <= {4'b0011, pwm_left_bcd[7:4]};
           15: lcd_char <= {4'b0011, pwm_left_bcd[3:0]};
 
           16: lcd_char <= "R";
           17: lcd_char <= ":";
-          18: lcd_char <= {4'b0010, right_dir ? 4'b1011 : 4'b1101};
+          18: lcd_char <= right_encoder_sign ? "+" : "-";
           19: lcd_char <= {4'b0011, RightEncoderBCD[19:16]};
           20: lcd_char <= {4'b0011, RightEncoderBCD[15:12]};
           21: lcd_char <= {4'b0011, RightEncoderBCD[11:8]};
@@ -196,7 +195,7 @@ module lcd_driver #(
           25: lcd_char <= "D";
           26: lcd_char <= "Y";
           27: lcd_char <= ":";
-          28: lcd_char <= pwm_left_dir ? "+" : "-";
+          28: lcd_char <= pwm_right_sign ? "+" : "-";
           29: lcd_char <= {4'b0011, pwm_right_bcd[11:8]};
           30: lcd_char <= {4'b0011, pwm_right_bcd[7:4]};
           31: lcd_char <= {4'b0011, pwm_right_bcd[3:0]};
@@ -264,14 +263,14 @@ module lcd_driver #(
         endcase
       end  // Page 3
       4: begin
-        case (lcd_rqst) 
+        case (lcd_rqst)
           0: lcd_char <= "P";
           1: lcd_char <= "i";
           2: lcd_char <= "t";
           3: lcd_char <= "c";
           4: lcd_char <= "h";
           5: lcd_char <= ":";
-          6: lcd_char <= {4'b0010, pitch_sign ? 4'b1011 : 4'b1101};
+          6: lcd_char <= pitch_sign ? "+" : "-";
           7: lcd_char <= {4'b0011, pitch_bcd[7:4]};
           8: lcd_char <= {4'b0011, pitch_bcd[3:0]};
 
@@ -281,11 +280,12 @@ module lcd_driver #(
           19: lcd_char <= "e";
           20: lcd_char <= "d";
           21: lcd_char <= ":";
-          22: lcd_char <= {4'b0011, set_speed_bcd[19:16]};
-          23: lcd_char <= {4'b0011, set_speed_bcd[15:12]};
-          24: lcd_char <= {4'b0011, set_speed_bcd[11:8]};
-          25: lcd_char <= {4'b0011, set_speed_bcd[7:4]};
-          26: lcd_char <= {4'b0011, set_speed_bcd[3:0]};
+          22: lcd_char <= set_speed_sign ? "+" : "-";
+          23: lcd_char <= {4'b0011, set_speed_bcd[19:16]};
+          24: lcd_char <= {4'b0011, set_speed_bcd[15:12]};
+          25: lcd_char <= {4'b0011, set_speed_bcd[11:8]};
+          26: lcd_char <= {4'b0011, set_speed_bcd[7:4]};
+          27: lcd_char <= {4'b0011, set_speed_bcd[3:0]};
           default: lcd_char <= " ";
         endcase
       end

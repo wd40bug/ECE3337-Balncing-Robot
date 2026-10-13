@@ -3,52 +3,54 @@
 module MotorControl (
 input clk,
 input rst,
-input [7:0] duty1,
-input [7:0] duty2,
-input [2:0] state1, 
-input [2:0] state2, 
-output left1, 
-output left2, 
-output right1, 
-output right2, 
+input signed [7:0] left_duty,
+input signed [7:0] right_duty,
+output reg left1, 
+output reg left2, 
+output reg right1, 
+output reg right2, 
 output leftpwm, 
 output rightpwm);
 
-PWMgenerator pwmgen1(.clk(clk), .rst(rst), .duty(duty1), .pwm_out(leftpwm));
-PWMgenerator pwmgen2(.clk(clk), .rst(rst), .duty(duty2), .pwm_out(rightpwm));
+reg [7:0] pwm_duty_left;
+reg [7:0] pwm_duty_right;
 
-reg left1, left2, right1, right2;
-/*
-0 - forward
-1 - backward
-2 - brake
-*/
+PWMgenerator pwmgen1(.clk(clk), .rst(rst), .duty(pwm_duty_left), .pwm_out(leftpwm));
+PWMgenerator pwmgen2(.clk(clk), .rst(rst), .duty(pwm_duty_right), .pwm_out(rightpwm));
+
 always @(*) begin
-    // Motor 1
-    if(state1 == 0) begin
+    // Left motor
+    if(left_duty == 0) begin
+        left1 <= 0;
+        left2 <= 0;
+        pwm_duty_left <= 0;
+    end
+    else if(left_duty > 0) begin
         left1 <= 0;
         left2 <= 1;
+        pwm_duty_left <= left_duty << 1;
     end
-    else if(state1 == 1) begin
+    else if(left_duty < 0) begin
         left1 <= 1;
         left2 <= 0;
+        pwm_duty_left <= -left_duty << 1;
     end
-    else if(state1 == 2) begin
-        left1 <= 0;
-        left2 <= 0;
-    end
-    // Motor 2 (Reversed)
-    if(state2 == 1) begin
+
+    // Right motor (Reversed)
+    if(right_duty == 0) begin
         right1 <= 0;
-        right2 <= 1;
+        right2 <= 0;
+        pwm_duty_right <= 0;
     end
-    else if(state2 == 0) begin
+    else if(right_duty > 0) begin
         right1 <= 1;
         right2 <= 0;
+        pwm_duty_right <= right_duty << 1;
     end
-    else if(state2 == 2) begin
+    else if(right_duty < 0) begin
         right1 <= 0;
-        right2 <= 0;
+        right2 <= 1;
+        pwm_duty_right <= -right_duty << 1;
     end
     
 end

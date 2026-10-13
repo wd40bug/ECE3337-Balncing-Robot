@@ -1,4 +1,4 @@
-module hex_to_lcd #(
+module binary_to_hex #(
     parameter N = 16 // Width of the input binary number
 )(
     input  wire [N-1:0] data_in,
