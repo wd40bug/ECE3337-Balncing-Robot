@@ -77,7 +77,7 @@ module top (
       .right_enable(enb),
       .right_in1(in3),
       .right_in2(in4),
-      .set_speed(set_speed),
+      .set_speed(-set_speed),
       // Debugging
       .left_speed(left_speed),
       .right_speed(right_speed),

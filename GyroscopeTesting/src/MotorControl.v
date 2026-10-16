@@ -26,13 +26,13 @@ always @(*) begin
         pwm_duty_left <= 0;
     end
     else if(left_duty > 0) begin
-        left1 <= 0;
-        left2 <= 1;
+        left1 <= 1;
+        left2 <= 0;
         pwm_duty_left <= left_duty << 1;
     end
     else if(left_duty < 0) begin
-        left1 <= 1;
-        left2 <= 0;
+        left1 <= 0;
+        left2 <= 1;
         pwm_duty_left <= -left_duty << 1;
     end
 
