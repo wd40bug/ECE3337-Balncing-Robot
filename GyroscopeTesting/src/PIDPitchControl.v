@@ -6,8 +6,6 @@ module PIDPitchControl #(
     input signed [7:0] pitch,
     output signed [15:0] speed
 );
-  wire signed [7:0] pitch;
-
   PID #(
     .IN_WIDTH(8),
     .OUT_WIDTH(16),

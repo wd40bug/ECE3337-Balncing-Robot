@@ -27,7 +27,7 @@ module top (
     in4
 );
 
-  assign led = {1, 0, 1, 0, 1, 0};
+  assign led = 6'b101010;
 
   // --- Sensor Readings ---
   // Angles
