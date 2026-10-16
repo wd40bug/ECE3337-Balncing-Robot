@@ -13,7 +13,9 @@ module Motors (
     input signed [15:0] set_speed,
     // Debugging
     output signed [15:0] left_speed,
-    output signed [15:0] right_speed
+    output signed [15:0] right_speed,
+    output signed [7:0] left_duty,
+    output signed [7:0] right_duty
 );
 
   wire data_in_left;
@@ -37,9 +39,6 @@ module Motors (
       .ticks(right_speed),
       .data_out(data_in_right)
   );
-
-  wire signed [7:0] left_duty;
-  wire signed [7:0] right_duty;
 
   PIDMotorControl pid_motor_control_inst (
       .clk(clk),

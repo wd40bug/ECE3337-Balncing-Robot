@@ -1,4 +1,6 @@
 Motor_Control/
 PID/
+.history
 *.FCBak
 *.3mf
+*.lck

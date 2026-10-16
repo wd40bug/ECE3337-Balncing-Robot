@@ -1,0 +1,23 @@
+[*]
+[*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
+[*] Fri Oct 16 20:42:50 2026
+[*]
+[dumpfile] "/home/wd40bug/college/26Fall/ECE3337/ECE3337-Balncing-Robot/GyroscopeTesting/_build/default/test/binary_to_hex_tb.vcd"
+[dumpfile_mtime] "Fri Oct 16 20:41:18 2026"
+[dumpfile_size] 1228
+[savefile] "/home/wd40bug/college/26Fall/ECE3337/ECE3337-Balncing-Robot/GyroscopeTesting/test/binary_to_hex_tb.gtkw"
+[timestart] 0
+[size] 1536 782
+[pos] -1 -1
+*-12.857499 20000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 312
+[signals_width] 118
+[sst_expanded] 1
+[sst_vpaned_height] 221
+@22
+binary_to_hex_tb.num[7:0]
+@820
+binary_to_hex_tb.char_1[7:0]
+binary_to_hex_tb.char_2[7:0]
+[pattern_trace] 1
+[pattern_trace] 0

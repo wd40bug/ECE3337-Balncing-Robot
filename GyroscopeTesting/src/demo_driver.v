@@ -14,7 +14,7 @@ module demo_driver (
     localparam integer MAX = 255;
 
     always @(posedge clk) begin
-        if ((up && down) || (!up && !down && left == right)) begin 
+        if ((up && down) || (right && left) || (!left && !right && !up && !down)) begin 
             // Brake
             left_state <= 2;
             right_state <= 2;

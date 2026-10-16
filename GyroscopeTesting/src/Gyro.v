@@ -5,7 +5,7 @@ module Gyro (
     output signed [7:0] pitch,
     output data_in,
     // Debugging
-    output [31:0] raw_gyro
+    output [63:0] raw_gyro
 );
 
   wire tx_ready;

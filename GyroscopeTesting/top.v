@@ -1,6 +1,6 @@
 module top (
     input clk,
-    input gyro_rx_pin,
+    input gyro_rx,
     input page_back,
     page_forward,
     up,
@@ -15,7 +15,7 @@ module top (
     output lcd_rs,
     output lcd_rw,
     output lcd_e,
-    output gyro_tx_pin,
+    output gyro_tx,
     output shift_ser,
     output shift_srclk,
     output shift_rclk,
@@ -27,58 +27,79 @@ module top (
     in4
 );
 
-  assign led = {enc_left_1, enc_left_2, enc_right_1, enc_right_2, 0, 0};
+  assign led = 6'b101010;
 
   // --- Sensor Readings ---
   // Angles
   wire signed [7:0] pitch;
   reg signed [7:0] yaw = -7'd75;
   // Speeds
-  wire signed [15:0] left_encoder;
-  wire signed [15:0] right_encoder;
+  wire signed [15:0] left_speed;
+  wire signed [15:0] right_speed;
+  // Data in
+  wire pitch_data_in;
 
   // --- System Variables ---
+  // Set Speed
+  wire signed [15:0] set_speed;
+  // Drive state
+  reg [2:0] drive_state = 3'd0;
   // --- Other ---
   // Debugging
-  wire [31:0] raw_gyro;
-  
+  wire [63:0] raw_gyro;
+  wire signed [7:0] left_duty, right_duty;
+
+  Gyro gyro_inst (
+      .clk(clk),
+      .rx(gyro_rx),
+      .tx(gyro_tx),
+      .pitch(pitch),
+      .data_in(pitch_data_in),
+      .raw_gyro(raw_gyro)
+  );
+
   PIDPitchControl pitch_control (
       .clk(clk),
       .data_in(pitch_data_in),
-      .pitch_sign(pitch_sign),
-      .pitch_magnitude(pitch_value),
+      .pitch(pitch),
       .speed(set_speed)
   );
 
-  lcd_driver #(
-      .DEFAULT_PAGE(4)
-  ) lcd_driver_inst (
+  Motors motors_inst (
       .clk(clk),
-      .page_backward(page_back),
-      .page_forward(page_forward),
-      .lcd_rqst(lcd_rqst),
-      .pitch_sign(pitch_sign),
-      .pitch_value(pitch_value),
-      .yaw_sign(yaw_sign),
-      .yaw_value(yaw_value),
-      .RawGyroReading(gyro_reading_lcd),
-      .LeftEncoderReading(encoder_reading_left),
-      .left_dir(encoder_reading_left_dir),
-      .RightEncoderReading(encoder_reading_right),
-      .right_dir(encoder_reading_right_dir),
-      .pwm_left(left_duty),
-      .pwm_left_dir(pwm_left_dir),
-      .pwm_right(right_duty),
-      .pwm_right_dir(pwm_right_dir),
-      .demo_state(2'd0),
-      .set_speed(set_speed),
-      .lcd_char(lcd_driver_out)
+      .left_encoder_1(enc_left_1),
+      .left_encoder_2(enc_left_2),
+      .right_encoder_1(enc_right_1),
+      .right_encoder_2(enc_right_2),
+      .left_enable(ena),
+      .left_in1(in1),
+      .left_in2(in2),
+      .right_enable(enb),
+      .right_in1(in3),
+      .right_in2(in4),
+      .set_speed(-set_speed),
+      // Debugging
+      .left_speed(left_speed),
+      .right_speed(right_speed),
+      .left_duty(left_duty),
+      .right_duty(right_duty)
   );
 
-  lcd lcd_inst (
+  LCD #(
+      .DEFAULT_PAGE(0)
+  ) lcd_inst (
       .clk(clk),
-      .char(lcd_driver_out),
-      .lcd_rqst(lcd_rqst),
+      .forward(page_forward),
+      .backward(page_back),
+      .pitch(pitch),
+      .yaw(yaw),
+      .gyro_raw(raw_gyro),
+      .left_speed(left_speed),
+      .right_speed(right_speed),
+      .left_duty(left_duty),
+      .right_duty(right_duty),
+      .drive_state(drive_state),
+      .set_speed(set_speed),
       .rs(lcd_rs),
       .rw(lcd_rw),
       .e(lcd_e),

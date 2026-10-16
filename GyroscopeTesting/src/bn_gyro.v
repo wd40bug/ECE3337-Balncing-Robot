@@ -22,6 +22,7 @@ localparam NDOF = 3'd4;
 localparam WAIT_NDOF = 3'd5;
 localparam CHECK_STATUS = 3'd6;
 localparam STARTUP_DONE = 3'd7;
+reg [2:0] startup_state = POWER_UP;
 
     // to transmit:
     // put the data you want to transmit in tx_data
@@ -148,7 +149,6 @@ end
 
 
 // -------------------- STARTUP -----------------------
-reg [2:0] startup_state = POWER_UP;
 reg command_sent = 1'd0;
 reg calibration_sent = 1'b0;
 reg ndof_sent = 1'd0;
@@ -440,7 +440,7 @@ pitch_lut pitch_calc(
     .qx(qx),
     .qy(qy),
     .qz(qz),
-    .pitch(pitch),
+    .pitch_out(pitch_angle),
     .out_valid(pitch_valid_out)
 );
 

@@ -11,6 +11,8 @@ module Encoder (
     output reg data_out
 );
 
+  reg dir;
+
   reg [15:0] ticksper = 0;
 
   localparam integer ncycles = 500_000;
