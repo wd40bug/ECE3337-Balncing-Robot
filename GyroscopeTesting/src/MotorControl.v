@@ -28,13 +28,13 @@ always @(*) begin
     else if(left_duty > 0) begin
         left1 <= 1;
         left2 <= 0;
-        pwm_duty_left <= left_duty << 1;
+        pwm_duty_left <= left_duty;
     end
     else if(left_duty < 0) begin
         left1 <= 0;
         left2 <= 1;
         //TODO: Fix stupid hack
-        pwm_duty_left <= left_duty > -128 ? -left_duty << 1 : 255;
+        pwm_duty_left <= -left_duty;
     end
 
     // Right motor (Reversed)
@@ -46,12 +46,12 @@ always @(*) begin
     else if(right_duty > 0) begin
         right1 <= 1;
         right2 <= 0;
-        pwm_duty_right <= right_duty << 1;
+        pwm_duty_right <= right_duty;
     end
     else if(right_duty < 0) begin
         right1 <= 0;
         right2 <= 1;
-        pwm_duty_right <= -right_duty << 1;
+        pwm_duty_right <= -right_duty;
     end
     
 end

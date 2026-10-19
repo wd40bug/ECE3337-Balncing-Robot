@@ -14,7 +14,7 @@ module LCD #(
     input signed [7:0] right_duty,
     input [2:0] drive_state,
     input signed [15:0] set_speed,
-    output reg rs,
+    output rs,
     rw,
     e,
     sr_data,
