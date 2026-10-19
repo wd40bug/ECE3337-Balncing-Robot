@@ -4,11 +4,11 @@ module PIDPitchControl #(
     input clk,
     input data_in,
     input signed [7:0] pitch,
-    output signed [15:0] speed
+    output signed [7:0] speed
 );
   PID #(
     .IN_WIDTH(8),
-    .OUT_WIDTH(16),
+    .OUT_WIDTH(8),
     .SHIFT(4),
     .Kp(800),
     .Ki(0),

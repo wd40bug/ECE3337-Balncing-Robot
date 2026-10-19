@@ -40,14 +40,13 @@ module top (
   wire pitch_data_in;
 
   // --- System Variables ---
-  // Set Speed
-  wire signed [15:0] set_speed;
   // Drive state
   reg [2:0] drive_state = 3'd0;
   // --- Other ---
   // Debugging
   wire [63:0] raw_gyro;
-  wire signed [7:0] left_duty, right_duty;
+  wire signed [7:0] duty_reversed;
+  wire signed [7:0] duty = -duty_reversed;
 
   Gyro gyro_inst (
       .clk(clk),
@@ -62,7 +61,7 @@ module top (
       .clk(clk),
       .data_in(pitch_data_in),
       .pitch(pitch),
-      .speed(set_speed)
+      .speed(duty_reversed)
   );
 
   Motors motors_inst (
@@ -77,12 +76,10 @@ module top (
       .right_enable(enb),
       .right_in1(in3),
       .right_in2(in4),
-      .set_speed(-set_speed),
+      .set_duty(duty),
       // Debugging
       .left_speed(left_speed),
       .right_speed(right_speed),
-      .left_duty(left_duty),
-      .right_duty(right_duty)
   );
 
   LCD #(
@@ -96,10 +93,10 @@ module top (
       .gyro_raw(raw_gyro),
       .left_speed(left_speed),
       .right_speed(right_speed),
-      .left_duty(left_duty),
-      .right_duty(right_duty),
+      .left_duty(duty),
+      .right_duty(duty),
       .drive_state(drive_state),
-      .set_speed(set_speed),
+      .set_speed(16'd0),
       .rs(lcd_rs),
       .rw(lcd_rw),
       .e(lcd_e),
