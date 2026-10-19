@@ -33,7 +33,8 @@ always @(*) begin
     else if(left_duty < 0) begin
         left1 <= 0;
         left2 <= 1;
-        pwm_duty_left <= -left_duty << 1;
+        //TODO: Fix stupid hack
+        pwm_duty_left <= left_duty > -128 ? -left_duty << 1 : 255;
     end
 
     // Right motor (Reversed)
