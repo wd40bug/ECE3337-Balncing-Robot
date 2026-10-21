@@ -21,8 +21,8 @@ PWMgenerator pwmgen2(.clk(clk), .rst(rst), .duty(pwm_duty_right), .pwm_out(right
 always @(*) begin
     // Left motor
     if(left_duty == 0) begin
-        left1 <= 0;
-        left2 <= 0;
+        left1 <= 1;
+        left2 <= 1;
         pwm_duty_left <= 0;
     end
     else if(left_duty > 0) begin
@@ -39,8 +39,8 @@ always @(*) begin
 
     // Right motor (Reversed)
     if(right_duty == 0) begin
-        right1 <= 0;
-        right2 <= 0;
+        right1 <= 1;
+        right2 <= 1;
         pwm_duty_right <= 0;
     end
     else if(right_duty > 0) begin

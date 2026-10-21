@@ -10,9 +10,9 @@ module PIDPitchControl #(
     .IN_WIDTH(8),
     .OUT_WIDTH(16),
     .SHIFT(4),
-    .Kp(82),
+    .Kp(104),
     .Ki(0),
-    .Kd(15)
+    .Kd(8)
   ) pid_pitch (
     .clk(clk),
     .rst(1'b1),
