@@ -14,10 +14,10 @@ module lcd_driver #(
     input signed [7:0] pwm_right,
     input [2:0] demo_state,
     input signed [15:0] set_speed,
+    input [103:0] esp_uart_in,
     output reg [7:0] lcd_char
 );
 
-  localparam [2:0] MAX_PAGE = 4;
   reg [2:0] page_num = DEFAULT_PAGE;
 
   wire forward_pulse;
@@ -72,7 +72,7 @@ module lcd_driver #(
       .DIGITS(2)
   ) binary_to_bcd_inst3 (
       .binary_in(yaw),
-      .bcd_out  (yaw_bcd),
+      .bcd_out(yaw_bcd),
       .sign(yaw_sign)
   );
 
@@ -84,7 +84,7 @@ module lcd_driver #(
       .DIGITS(5)
   ) binary_to_bcd_inst (
       .binary_in(LeftEncoderReading),
-      .bcd_out  (LeftEncoderBCD),
+      .bcd_out(LeftEncoderBCD),
       .sign(left_encoder_sign)
   );
 
@@ -96,7 +96,7 @@ module lcd_driver #(
       .DIGITS(5)
   ) binary_to_bcd_inst1 (
       .binary_in(RightEncoderReading),
-      .bcd_out  (RightEncoderBCD),
+      .bcd_out(RightEncoderBCD),
       .sign(right_encoder_sign)
   );
 
@@ -115,7 +115,7 @@ module lcd_driver #(
       .DIGITS(3)
   ) binary_to_bcd_inst4 (
       .binary_in(pwm_left),
-      .bcd_out  (pwm_left_bcd),
+      .bcd_out(pwm_left_bcd),
       .sign(pwm_left_sign)
   );
 
@@ -126,7 +126,7 @@ module lcd_driver #(
       .DIGITS(3)
   ) binary_to_bcd_inst5 (
       .binary_in(pwm_right),
-      .bcd_out  (pwm_right_bcd),
+      .bcd_out(pwm_right_bcd),
       .sign(pwm_right_sign)
   );
 
@@ -137,8 +137,16 @@ module lcd_driver #(
       .DIGITS(5)
   ) binary_to_bcd_inst6 (
       .binary_in(set_speed),
-      .bcd_out  (set_speed_bcd),
+      .bcd_out(set_speed_bcd),
       .sign(set_speed_sign)
+  );
+
+  wire [26 * 8 - 1:0] esp_uart_ascii;
+  binary_to_hex #(
+      .N(104)
+  ) binary_to_hex_inst_1 (
+      .data_in (esp_uart_in),
+      .char_out(esp_uart_ascii)
   );
 
 
@@ -297,8 +305,30 @@ module lcd_driver #(
           default: lcd_char <= " ";
         endcase
       end
+      5: begin
+        case (lcd_rqst)
+          0: lcd_char <= "E";
+          1: lcd_char <= "S";
+          2: lcd_char <= "P";
+          3: lcd_char <= ":";
+          4, 5, 6, 7: lcd_char <= " ";
+          default: lcd_char <= esp_uart_ascii[(26-lcd_rqst+8)*8-1 : (26-lcd_rqst+8-1)*8];
+        endcase
+      end
 
-      default: lcd_char <= 8'b00100000;  // Page error
+      default: begin
+        case (lcd_rqst)
+            0: lcd_char <= "T";
+            1: lcd_char <= "O";
+            2: lcd_char <= "O";
+
+            4: lcd_char <= "F";
+            5: lcd_char <= "A";
+            6: lcd_char <= "R";
+            7: lcd_char <= "!";
+            default: lcd_char <= " ";
+        endcase
+      end  // Page error
 
     endcase
   end
