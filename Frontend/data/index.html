@@ -3,6 +3,8 @@
 
 <head>
   <meta name=\viewport\ content=\width=device-width, initial-scale=1\>
+  <link rel="stylesheet" href="uPlot.min.css">
+  <script src="uPlot.iife.min.js"></script>
   <style>
     body {
       font-family: Arial;
@@ -21,7 +23,8 @@
       border-radius: 5px;
     }
 
-    #dircntrl > button:active, button.active {
+    #dircntrl>button:active,
+    button.active {
       background-color: #e66ed0;
     }
 
@@ -183,6 +186,44 @@
     <p>Shift</p>
     <input type="number" min="0" max="4095" id="MotorS" value="4" onchange="setPID()">
   </div>
+  <div id="pitchChart"></div>
+
+  <script>
+    const pitch_data = [[], []];
+    const MAX_POINTS = 1000;
+
+    const pitch_opts = {
+      width: 800,
+      height: 400,
+      cursor: {
+        drag: {setScale: true, x: true, y: true}
+      },
+      series: [
+        {},
+        {label: "Pitch", stroke: "#00ff00", width: 2}
+      ],
+      axes: [
+        {stroke: "#ccc", grid: {stroke: "#333"}},
+        {stroke: "#ccc", grid: {stroke: "#333"}}
+      ]
+    };
+
+    const u_pitch = new uPlot(pitch_opts, pitch_data, document.getElementById("pitchChart"));
+    const gateway = `ws://${window.location.hostname}/ws`;
+    const websocket = new WebSocket(gateway);
+    websocket.onmessage = function(event) {
+      const payload = JSON.parse(event.data);
+      pitch_data[0].push(payload.time);
+      pitch_data[1].push(payload.pitch);
+
+      if (pitch_data[0].length > MAX_POINTS) {
+        pitch_data[0].shift();
+        pitch_data[1].shift();
+      }
+
+      u_pitch.setData(pitch_data);
+    }
+  </script>
 </body>
 
 </html>

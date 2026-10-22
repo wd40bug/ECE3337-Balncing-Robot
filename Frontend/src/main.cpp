@@ -1,22 +1,16 @@
 #include "Arduino.h"
 #include "ArduinoJson.h"
+#include "AsyncWebSocket.h"
+#include "ESPAsyncWebServer.h"
 #include "ESPmDNS.h"
-#include "HardwareSerial.h"
-#include "WebServer.h"
+#include "LittleFS.h"
 #include "WiFi.h"
-#include "esp32-hal-gpio.h"
-#include "http_parser.h"
 
 const char *ssid = "BALANCING_ROBOT";
 const char *password = "";
 
-WebServer server(80);
-
-String header;
-
-extern const uint8_t index_html_start[] asm("_binary_index_html_start");
-extern const uint8_t index_html_end[] asm("_binary_index_html_end");
-const uint8_t index_html_size = index_html_end - index_html_start;
+AsyncWebServer server(80);
+AsyncWebSocket ws("/ws");
 
 const uint8_t CMD_ON = 0x01;
 const uint8_t CMD_OFF = 0x02;
@@ -24,11 +18,18 @@ const uint8_t CMD_BTNDOWN = 0x03;
 const uint8_t CMD_BTNUP = 0x04;
 const uint8_t CMD_PIDS = 0x05;
 
+const uint8_t TIME_SIZE = 4;
+const uint8_t PITCH_SIZE = 1;
+
+const uint8_t TEL_PITCH = 0x01;
+const uint8_t TEL_PITCH_SIZE = TIME_SIZE + PITCH_SIZE;
+const size_t TEL_PITCH_TIME_IDX = 0;
+const size_t TEL_PITCH_PITCH_IDX = TEL_PITCH_TIME_IDX + TIME_SIZE;
+
 const uint8_t BTN_UP = 1;
 const uint8_t BTN_DOWN = 2;
 const uint8_t BTN_LEFT = 3;
 const uint8_t BTN_RIGHT = 4;
-
 
 void setup() {
   Serial.begin(115200);
@@ -36,10 +37,15 @@ void setup() {
   }
 
   Serial2.begin(115200, SERIAL_8N1, 16, 17);
-  while(!Serial2) {
+  while (!Serial2) {
   }
 
   Serial.println("ESP STARTING!");
+
+  if (!LittleFS.begin(true)) {
+    Serial.println("An Error has occurred while mounting LittleFS");
+    return;
+  }
 
   WiFi.softAP(ssid, password);
   IPAddress IP = WiFi.softAPIP();
@@ -54,78 +60,79 @@ void setup() {
     }
   }
 
-  server.on("/", []() {
-    server.send(200, "text/html", (const char *)index_html_start);
+  server.serveStatic("/", LittleFS, "/").setDefaultFile("index.html");
+  server.onNotFound([](AsyncWebServerRequest *request) {
+    request->send(404, "text/plain", "PAGE NOT FOUND!");
   });
-  server.on("/press/up", []() {
+  server.on("/press/up", [](AsyncWebServerRequest *request) {
     Serial2.write(CMD_BTNDOWN);
     Serial2.write(BTN_UP);
     Serial.println("+UP");
-    server.send(200);
+    request->send(200);
   });
-  server.on("/press/down", []() {
+  server.on("/press/down", [](AsyncWebServerRequest *request) {
     Serial2.write(CMD_BTNDOWN);
     Serial2.write(BTN_DOWN);
     Serial.println("+DOWN");
-    server.send(200);
+    request->send(200);
   });
-  server.on("/press/left", []() {
+  server.on("/press/left", [](AsyncWebServerRequest *request) {
     Serial2.write(CMD_BTNDOWN);
     Serial2.write(BTN_LEFT);
     Serial.println("+LEFT");
-    server.send(200);
+    request->send(200);
   });
-  server.on("/press/right", []() {
+  server.on("/press/right", [](AsyncWebServerRequest *request) {
     Serial2.write(CMD_BTNDOWN);
     Serial2.write(BTN_RIGHT);
     Serial.println("+RIGHT");
-    server.send(200);
+    request->send(200);
   });
-  server.on("/unpress/up", []() {
+  server.on("/unpress/up", [](AsyncWebServerRequest *request) {
     Serial2.write(CMD_BTNUP);
     Serial2.write(BTN_UP);
     Serial.println("-UP");
-    server.send(200);
+    request->send(200);
   });
-  server.on("/unpress/down", []() {
+  server.on("/unpress/down", [](AsyncWebServerRequest *request) {
     Serial2.write(CMD_BTNUP);
     Serial2.write(BTN_DOWN);
     Serial.println("-DOWN");
-    server.send(200);
+    request->send(200);
   });
-  server.on("/unpress/left", []() {
+  server.on("/unpress/left", [](AsyncWebServerRequest *request) {
     Serial2.write(CMD_BTNUP);
     Serial2.write(BTN_LEFT);
     Serial.println("-LEFT");
-    server.send(200);
+    request->send(200);
   });
-  server.on("/unpress/right", []() {
+  server.on("/unpress/right", [](AsyncWebServerRequest *request) {
     Serial2.write(CMD_BTNUP);
     Serial2.write(BTN_RIGHT);
     Serial.println("-RIGHT");
-    server.send(200);
+    request->send(200);
   });
 
-  server.on("/off", []() {
+  server.on("/off", [](AsyncWebServerRequest *request) {
     Serial.println("Turning Off");
     Serial2.write(CMD_OFF);
-    server.send(200);
+    request->send(200);
   });
 
-  server.on("/on", []() {
+  server.on("/on", [](AsyncWebServerRequest *request) {
     Serial.println("Turning On");
     Serial2.write(CMD_ON);
-    server.send(200);
+    request->send(200);
   });
 
-  server.on("/setPID", HTTP_POST, []() {
-    if (server.hasArg("plain") == false) {
-      server.send(400, "application/json", "{\"error\":\"Body missing\"}");
+  server.on("/setPID", HTTP_POST, [](AsyncWebServerRequest *request) {
+    if (request->hasArg("plain") == false) {
+      request->send(400, "application/json", "{\"error\":\"Body missing\"}");
       return;
     }
 
     // 2. Extract the raw string payload
-    String body = server.arg("plain");
+    String body = request->arg("plain");
     Serial.println("Received body: " + body);
 
     // 3. Allocate the JSON Document (adjust capacity according to your JSON
@@ -138,7 +145,7 @@ void setup() {
     if (error) {
       Serial.print("deserializeJson() failed: ");
       Serial.println(error.c_str());
-      server.send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
+      request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
       return;
     }
 
@@ -158,12 +165,14 @@ void setup() {
     Serial.printf("Motor - P: %u, I: %u, D: %u, S: %u\n", p_motor, i_motor,
                   d_motor, s_motor);
 
-    auto send12BitPair = [](HardwareSerial& serial, uint16_t a, uint16_t b) -> void{
+    auto send12BitPair = [](HardwareSerial &serial, uint16_t a,
+                            uint16_t b) -> void {
       a &= 0x0FFF;
       b &= 0xFFFF;
-      
+
       serial.write((uint8_t)(a >> 4)); // Top byte of a
-      serial.write((uint8_t)(a << 4) | (b >> 8)); // Bottom nibble of a, top nibble of b
+      serial.write((uint8_t)(a << 4) |
+                   (b >> 8));            // Bottom nibble of a, top nibble of b
       serial.write((uint8_t)(b & 0xFF)); // Bottom byte of b
     };
 
@@ -172,10 +181,80 @@ void setup() {
     send12BitPair(Serial2, d_pitch, s_pitch);
     send12BitPair(Serial2, p_motor, i_motor);
     send12BitPair(Serial2, d_motor, s_motor);
-    server.send(200);
+    request->send(200);
   });
+
+  ws.onEvent([](AsyncWebSocket *socket, AsyncWebSocketClient *client,
+                AwsEventType type, void *arg, uint8_t *data, size_t len) {
+    switch (type) {
+    case WS_EVT_CONNECT:
+      Serial.printf("WebSocket client #%u connected from %s\n", client->id(),
+                    client->remoteIP().toString().c_str());
+      break;
+    case WS_EVT_DISCONNECT:
+      Serial.printf("WebSocket client #%u disconnected\n", client->id());
+      break;
+    case WS_EVT_DATA:
+      // Handle incoming messages from the browser here if you need to send
+      // commands back to the ESP32
+      break;
+    case WS_EVT_PONG:
+    case WS_EVT_ERROR:
+      break;
+    }
+  });
+
+  server.addHandler(&ws);
 
   server.begin();
 }
 
-void loop() { server.handleClient(); }
+uint32_t to_u32_big_endian(const uint8_t bytes[4]) {
+  return (static_cast<uint32_t>(bytes[0]) << 24) |
+         (static_cast<uint32_t>(bytes[1]) << 16) |
+         (static_cast<uint32_t>(bytes[2]) << 8) |
+         (static_cast<uint32_t>(bytes[3]));
+}
+
+uint8_t command = 0;
+size_t read_size = 0;
+size_t read_counter = 0;
+uint8_t read_buffer[10];
+
+void loop() {
+  ws.cleanupClients();
+  while (Serial2.available()) {
+    if (read_size == 0) {
+      int read = Serial2.read();
+      switch (read) {
+      case TEL_PITCH:
+        read_size = TEL_PITCH_SIZE;
+        command = TEL_PITCH;
+        break;
+      default:
+        Serial.printf("Unknown telemetry code: %d\n", read);
+        read_size = 0;
+        break;
+      }
+    } else {
+      read_counter += Serial2.readBytes(read_buffer + read_counter,
+                                        read_size - read_counter);
+      if (read_counter == read_size) {
+        JsonDocument doc;
+        String JSONString;
+        switch (command) {
+        case TEL_PITCH:
+          doc["time"] = to_u32_big_endian(read_buffer);
+          doc["pitch"] = read_buffer[TEL_PITCH_PITCH_IDX];
+          serializeJson(doc, JSONString);
+          ws.textAll(JSONString);
+          break;
+        default:
+          break;
+        }
+        read_size = 0;
+        read_counter = 0;
+      }
+    }
+  }
+}
