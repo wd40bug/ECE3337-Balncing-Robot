@@ -69,7 +69,7 @@ IO_PORT "gyro_rx" IO_TYPE=LVCMOS33;
 IO_LOC "gyro_tx" 76;
 IO_PORT "gyro_tx" IO_TYPE=LVCMOS33;
 
-// IO_LOC "esp_tx" 53;
-// IO_PORT "esp_tx" IO_TYPE=LVCMOS33;
-// IO_LOC "esp_rx" 52;
-// IO_PORT "esp_rx" IO_TYPE=LVCMOS33;
+IO_LOC "esp_tx" 53;
+IO_PORT "esp_tx" IO_TYPE=LVCMOS33;
+IO_LOC "esp_rx" 52;
+IO_PORT "esp_rx" IO_TYPE=LVCMOS33;

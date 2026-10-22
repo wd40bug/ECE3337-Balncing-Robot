@@ -1,6 +1,7 @@
 module top (
     input clk,
     input gyro_rx,
+    input esp_rx,
     input page_back,
     page_forward,
     up,
@@ -16,6 +17,7 @@ module top (
     output lcd_rw,
     output lcd_e,
     output gyro_tx,
+    output esp_tx,
     output shift_ser,
     output shift_srclk,
     output shift_rclk,
@@ -48,6 +50,8 @@ module top (
   // Debugging
   wire [63:0] raw_gyro;
   wire signed [7:0] left_duty, right_duty;
+
+    wire [103:0] esp_uart_output;
 
   Gyro gyro_inst (
       .clk(clk),
@@ -106,6 +110,43 @@ module top (
       .sr_data(shift_ser),
       .sr_clk(shift_srclk),
       .sr_latch(shift_rclk)
+  );
+
+    wire esp_tx_ready;
+    wire [7:0] esp_tx_data;
+    wire esp_tx_done;
+    wire esp_tx_active;
+    wire [7:0] esp_rx_data;
+    wire esp_rx_data_valid;
+
+  esp_commands esp_inst (
+    .clk(clk),
+    .rx_data_valid(esp_rx_data_valid),
+    .uart_data(esp_rx_data),
+    .tx_cur_transmitting(esp_tx_active),
+    .tx_done(esp_tx_done),
+    .tx_data(esp_tx_data),
+    .tx_ready(esp_tx_ready),
+    .esp_raw_output(esp_uart_output)
+);
+
+    
+
+  uart_tx uart_tx_esp (
+      .i_Rst_L(1'b1),
+      .i_Clock(clk),
+      .i_TX_DV(esp_tx_ready),
+      .i_TX_Byte(esp_tx_data),
+      .o_TX_Active(esp_tx_active),
+      .o_TX_Serial(esp_tx),
+      .o_TX_Done(esp_tx_done)
+  );
+
+  uart_rx uart_rx_esp (
+      .i_Clock(clk),
+      .i_RX_Serial(esp_rx),
+      .o_RX_DV(esp_rx_data_valid),
+      .o_RX_Byte(esp_rx_data)
   );
 
 endmodule
