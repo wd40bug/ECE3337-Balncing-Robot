@@ -79,7 +79,7 @@ module top (
       .set_duty(duty),
       // Debugging
       .left_speed(left_speed),
-      .right_speed(right_speed),
+      .right_speed(right_speed)
   );
 
   LCD #(
