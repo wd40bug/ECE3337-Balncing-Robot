@@ -47,7 +47,7 @@ module lcd_driver #(
   always @(posedge clk) begin
     if (forward_held && backward_held) begin
       page_num <= DEFAULT_PAGE;
-    end else if (forward_pulse && page_num < MAX_PAGE) begin
+    end else if (forward_pulse) begin
       page_num <= page_num + 1;
     end else if (backward_pulse && page_num > 0) begin
       page_num <= page_num - 1;
@@ -312,21 +312,22 @@ module lcd_driver #(
           2: lcd_char <= "P";
           3: lcd_char <= ":";
           4, 5, 6, 7: lcd_char <= " ";
-          default: lcd_char <= esp_uart_ascii[(26-lcd_rqst+8)*8-1 : (26-lcd_rqst+8-1)*8];
+          default: lcd_char <= esp_uart_ascii[(26-lcd_rqst+8)*8-1 -: 8];
         endcase
       end
 
       default: begin
+        page_num <= DEFAULT_PAGE;
         case (lcd_rqst)
-            0: lcd_char <= "T";
-            1: lcd_char <= "O";
-            2: lcd_char <= "O";
+          0: lcd_char <= "T";
+          1: lcd_char <= "O";
+          2: lcd_char <= "O";
 
-            4: lcd_char <= "F";
-            5: lcd_char <= "A";
-            6: lcd_char <= "R";
-            7: lcd_char <= "!";
-            default: lcd_char <= " ";
+          4: lcd_char <= "F";
+          5: lcd_char <= "A";
+          6: lcd_char <= "R";
+          7: lcd_char <= "!";
+          default: lcd_char <= " ";
         endcase
       end  // Page error
 
