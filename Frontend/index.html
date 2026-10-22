@@ -1,32 +1,69 @@
-<!DOCTYPE html><html>
+<!DOCTYPE html>
+<html>
+
 <head>
   <meta name=\viewport\ content=\width=device-width, initial-scale=1\>
   <style>
-    body { font-family: Arial; text-align: center; margin-top: 50px; }
-    button { background-color: #4CAF50; color: white; padding: 15px 25px; text-decoration: none; font-size: 24px; margin: 10px; display: inline-block; border-radius: 5px; }
-    button:active, button.active {background-color: #e66ed0;}
-    div {
+    body {
+      font-family: Arial;
+      text-align: center;
+      margin-top: 50px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 15px 25px;
+      text-decoration: none;
+      font-size: 24px;
+      margin: 10px;
+      display: inline-block;
+      border-radius: 5px;
+    }
+
+    #dircntrl > button:active, button.active {
+      background-color: #e66ed0;
+    }
+
+    #dircntrl {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       grid-template-rows: 1fr 1fr 1fr;
     }
+
+    .PID {
+      display: grid;
+      grid-template-columns: 1fr 3fr 1fr 3fr 1fr 3fr 2fr 3fr;
+      margin-bottom: 25px;
+      padding: 10px;
+      background-color: lightgray;
+    }
+
     #up {
       grid-column: 2;
       grid-row: 1;
     }
+
     #left {
       grid-column: 1;
       grid-row: 2;
     }
+
     #right {
       grid-column: 3;
       grid-row: 2;
     }
+
     #down {
       grid-column: 2;
       grid-row: 3;
     }
+
+    .off {
+      background-color: grey;
+    }
   </style>
+
   <script>
     function pressButton(name) {
       console.log("/press/" + name);
@@ -37,42 +74,115 @@
       fetch("/unpress/" + name).catch(error => console.error('Error reaching ESP32:', error));
     }
 
+    var isOn = false;
+
+    function toggleOn() {
+      const toggleBtn = document.getElementById("toggleBtn");
+      if (isOn) {
+        fetch("/off").then(() => {
+          toggleBtn.textContent = "ON";
+          toggleBtn.classList.add('off');
+          isOn = false;
+        }).catch(error => console.error('Error reaching ESP32:', error));
+      } else {
+        fetch("/on").then(() => {
+          toggleBtn.textContent = "OFF";
+          toggleBtn.classList.remove('off');
+          isOn = true;
+        }).catch(error => console.error('Error reaching ESP32:', error));
+      }
+    }
+
+
+
+    function setPID() {
+      const pitchP = document.getElementById("PitchP");
+      const pitchI = document.getElementById("PitchI");
+      const pitchD = document.getElementById("PitchD");
+      const pitchS = document.getElementById("PitchS");
+      const motorP = document.getElementById("MotorP");
+      const motorI = document.getElementById("MotorI");
+      const motorD = document.getElementById("MotorD");
+      const motorS = document.getElementById("MotorS");
+
+
+      fetch("/setPID", {
+        method: "POST",
+        body: JSON.stringify({
+          "pitch": {
+            "P": pitchP.value,
+            "I": pitchI.value,
+            "D": pitchD.value,
+            "S": pitchS.value
+          },
+          "motor": {
+            "P": motorP.value,
+            "I": motorI.value,
+            "D": motorD.value,
+            "S": motorS.value
+          }
+        })
+      }).catch(error => console.error('Error reaching ESP32:', error));
+    }
+
     const keyMap = {
-    'ArrowUp': 'up',
-    'ArrowLeft': 'left',
-    'ArrowRight': 'right',
-    'ArrowDown': 'down'
-  };
+      'ArrowUp': 'up',
+      'ArrowLeft': 'left',
+      'ArrowRight': 'right',
+      'ArrowDown': 'down'
+    };
 
-  document.addEventListener('keydown', (event) => {
-    const buttonName = keyMap[event.key];
-    
-    // If it's an arrow key AND not being held down continuously
-    if (buttonName && !event.repeat) {
-      event.preventDefault(); // Stop the page from scrolling
-      pressButton(buttonName);
-      document.getElementById(buttonName).classList.add('active'); // Visually press the button
-    }
-  });
+    document.addEventListener('keydown', (event) => {
+      const buttonName = keyMap[event.key];
 
-  document.addEventListener('keyup', (event) => {
-    const buttonName = keyMap[event.key];
-    
-    if (buttonName) {
-      unpressButton(buttonName);
-      document.getElementById(buttonName).classList.remove('active'); // Visually release the button
-    }
-  });
+      // If it's an arrow key AND not being held down continuously
+      if (buttonName && !event.repeat) {
+        event.preventDefault(); // Stop the page from scrolling
+        pressButton(buttonName);
+        document.getElementById(buttonName).classList.add('active'); // Visually press the button
+      }
+    });
+
+    document.addEventListener('keyup', (event) => {
+      const buttonName = keyMap[event.key];
+
+      if (buttonName) {
+        unpressButton(buttonName);
+        document.getElementById(buttonName).classList.remove('active'); // Visually release the button
+      }
+    });
   </script>
 </head>
+
 <body>
-  <h1>ESP32 Web Server</h1>
-  <p>LED Control</p>
-  <div>
+  <h1>Balancing Robot Control</h1>
+  <button id="toggleBtn" onclick="toggleOn()" class="off">ON</button>
+  <div id="dircntrl">
     <button id="up" onpointerdown="pressButton('up')" onpointerup="unpressButton('up')">UP</button>
     <button id="left" onpointerdown="pressButton('left')" onpointerup="unpressButton('left')">LEFT</button>
     <button id="right" onpointerdown="pressButton('right')" onpointerup="unpressButton('right')">RIGHT</button>
     <button id="down" onpointerdown="pressButton('down')" onpointerup="unpressButton('down')">DOWN</button>
   </div>
+  <div class="PID">
+    <p>P</p>
+    <input type="number" min="0" max="4095" id="PitchP" value="0" onchange="setPID()">
+    <p>I</p>
+    <input type="number" min="0" max="4095" id="PitchI" value="0" onchange="setPID()">
+    <p>D</p>
+    <input type="number" min="0" max="4095" id="PitchD" value="0" onchange="setPID()">
+    <p>Shift</p>
+    <input type="number" min="0" max="4095" id="PitchS" value="4" onchange="setPID()">
+  </div>
+  <div class="PID">
+    <p>P</p>
+    <input type="number" min="0" max="4095" id="MotorP" value="0" onchange="setPID()">
+    <p>I</p>
+    <input type="number" min="0" max="4095" id="MotorI" value="0" onchange="setPID()">
+    <p>D</p>
+    <input type="number" min="0" max="4095" id="MotorD" value="0" onchange="setPID()">
+    <p>Shift</p>
+    <input type="number" min="0" max="4095" id="MotorS" value="4" onchange="setPID()">
+  </div>
 </body>
+
 </html>
