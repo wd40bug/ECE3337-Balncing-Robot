@@ -104,7 +104,7 @@ module top (
       .right_duty(right_duty),
       .drive_state(drive_state),
       .set_speed(set_speed),
-        .raw_esp_uart_data(esp_uart_output),
+        .esp_uart_in(esp_uart_output),
       .rs(lcd_rs),
       .rw(lcd_rw),
       .e(lcd_e),

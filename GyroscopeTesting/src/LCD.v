@@ -52,6 +52,7 @@ module LCD #(
     .pwm_right(right_duty),
     .demo_state(drive_state),
     .set_speed(set_speed),
-    .esp_uart_in(raw_esp_uart_data),
     .esp_uart_in(esp_uart_in),
-  
+    .lcd_char(lcd_char)
+);
+endmodule
