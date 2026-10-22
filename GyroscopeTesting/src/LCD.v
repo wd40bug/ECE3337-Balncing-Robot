@@ -14,6 +14,7 @@ module LCD #(
     input signed [7:0] right_duty,
     input [2:0] drive_state,
     input signed [15:0] set_speed,
+    input [103:0] raw_esp_uart_data,
     output rs,
     rw,
     e,
@@ -51,6 +52,7 @@ module LCD #(
     .pwm_right(right_duty),
     .demo_state(drive_state),
     .set_speed(set_speed),
+    .esp_uart_in(raw_esp_uart_data),
     .lcd_char(lcd_char)
   );
   
