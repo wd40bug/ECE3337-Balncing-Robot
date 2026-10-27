@@ -18,19 +18,16 @@ module PIDMotorControl (
       .IN_WIDTH(16),
       .OUT_WIDTH(8),
       .SHIFT(4),
-      .Kp(16),
-      .Ki(0),
-      .Kd(0)
   ) pid_left (
       .clk(clk),
       .rst(1'b1),
       .setPos(speed_left),
       .processvar(read_speed_left),
       .sample_tick(data_in_left),
-        .P(16),
-        .I(0),
-        .D(0),
-        .shift(4),
+        .P(P),
+        .I(I),
+        .D(D),
+        .shift(shift),
       .correction(PWM_left)
   );
 
@@ -38,19 +35,16 @@ module PIDMotorControl (
       .IN_WIDTH(16),
       .OUT_WIDTH(8),
       .SHIFT(4),
-      .Kp(16),
-      .Ki(0),
-      .Kd(0)
   ) pid_right (
       .clk(clk),
       .rst(1'b1),
       .setPos(speed_right),
       .processvar(read_speed_right),
       .sample_tick(data_in_right),
-        .P(16),
-        .I(0),
-        .D(0),
-        .shift(4),
+        .P(P),
+        .I(I),
+        .D(D),
+        .shift(shift),
       .correction(PWM_right)
   );
 
