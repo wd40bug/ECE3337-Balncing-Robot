@@ -403,14 +403,14 @@ module lcd_driver #(
           3: lcd_char <= "c";
           4: lcd_char <= "h";
           5: lcd_char <= ":";
-          6: lcd_char <= "S";
-          8,9,10,11: lcd_char <= {4'b0011, pitch_s_bcd[15 - (lcd_char - 8) * 4 -: 4 ]};
+          7: lcd_char <= "S";
+          8,9,10,11: lcd_char <= {4'b0011, pitch_s_bcd[15 - (lcd_rqst - 8) * 4 -: 4 ]};
           16: lcd_char <= "P";
-          17,18,19,20: lcd_char <= {4'b0011, pitch_p_bcd[15 - (lcd_char - 17) * 4 -: 4 ]};
+          17,18,19,20: lcd_char <= {4'b0011, pitch_p_bcd[15 - (lcd_rqst - 17) * 4 -: 4 ]};
           21: lcd_char <= "I";
-          22,23,24,25: lcd_char <= {4'b0011, pitch_i_bcd[15 - (lcd_char - 22) * 4 -: 4 ]};
+          22,23,24,25: lcd_char <= {4'b0011, pitch_i_bcd[15 - (lcd_rqst - 22) * 4 -: 4 ]};
           26: lcd_char <= "D";
-          27,28,29,30: lcd_char <= {4'b0011, pitch_d_bcd[15 - (lcd_char - 27) * 4 -: 4 ]};
+          27,28,29,30: lcd_char <= {4'b0011, pitch_d_bcd[15 - (lcd_rqst - 27) * 4 -: 4 ]};
           default: lcd_char <= " ";
         endcase
       end
@@ -423,13 +423,14 @@ module lcd_driver #(
           3: lcd_char <= "o";
           4: lcd_char <= "r";
           5: lcd_char <= ":";
-          7,8,9,10: lcd_char <= {4'b0011, motor_s_bcd[15 - (lcd_char - 7) * 4 -: 4 ]};
+          7: lcd_char <= "S";
+          8,9,10,11: lcd_char <= {4'b0011, motor_s_bcd[15 - (lcd_rqst - 8) * 4 -: 4 ]};
           16: lcd_char <= "P";
-          17,18,19,20: lcd_char <= {4'b0011, motor_p_bcd[15 - (lcd_char - 17) * 4 -: 4 ]};
+          17,18,19,20: lcd_char <= {4'b0011, motor_p_bcd[15 - (lcd_rqst - 17) * 4 -: 4 ]};
           21: lcd_char <= "I";
-          22,23,24,25: lcd_char <= {4'b0011, motor_i_bcd[15 - (lcd_char - 22) * 4 -: 4 ]};
+          22,23,24,25: lcd_char <= {4'b0011, motor_i_bcd[15 - (lcd_rqst - 22) * 4 -: 4 ]};
           26: lcd_char <= "D";
-          27,28,29,30: lcd_char <= {4'b0011, motor_d_bcd[15 - (lcd_char - 27) * 4 -: 4 ]};
+          27,28,29,30: lcd_char <= {4'b0011, motor_d_bcd[15 - (lcd_rqst - 27) * 4 -: 4 ]};
           default: lcd_char <= " ";
         endcase
       end

@@ -15,6 +15,10 @@ module PID #(
     output wire signed [OUT_WIDTH-1:0] correction
 );
 
+  wire signed [12:0] P_signed = {1'b0, P};
+  wire signed [12:0] I_signed = {1'b0, P};
+  wire signed [12:0] D_signed = {1'b0, P};
+
   // Dynamic output limits based on OUT_WIDTH (e.g., 8-bit -> Max: 127, Min: -128)
   localparam signed [2*IN_WIDTH-1:0] OUT_MAX = (1 << (OUT_WIDTH - 1)) - 1;
   localparam signed [2*IN_WIDTH-1:0] OUT_MIN = -(1 << (OUT_WIDTH - 1));
@@ -38,9 +42,9 @@ module PID #(
   /*assign propterm = ($signed(Kp) * $signed(err_comb)) >>> SHIFT;
   assign integralterm = ($signed(Ki) * integral) >>> SHIFT;
   assign derivativeterm = ($signed(Kd) * $signed(derivative_comb)) >>> SHIFT;*/
-  assign propterm = ($signed(P) * $signed(err_comb)) >>> shift;
-  assign integralterm = ($signed(I) * integral) >>> shift;
-  assign derivativeterm = ($signed(D) * $signed(derivative_comb)) >>> shift;
+  assign propterm = (P_signed * err_comb) >>> shift;
+  assign integralterm = (I_signed * integral) >>> shift;
+  assign derivativeterm = (D_signed * derivative_comb) >>> shift;
 
   assign full_sum = propterm + integralterm + derivativeterm;
 
