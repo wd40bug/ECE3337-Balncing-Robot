@@ -17,7 +17,7 @@ module PIDMotorControl (
   PID #(
       .IN_WIDTH(16),
       .OUT_WIDTH(8),
-      .SHIFT(4),
+      .SHIFT(4)
   ) pid_left (
       .clk(clk),
       .rst(1'b1),
@@ -34,7 +34,7 @@ module PIDMotorControl (
   PID #(
       .IN_WIDTH(16),
       .OUT_WIDTH(8),
-      .SHIFT(4),
+      .SHIFT(4)
   ) pid_right (
       .clk(clk),
       .rst(1'b1),
@@ -47,5 +47,5 @@ module PIDMotorControl (
         .shift(shift),
       .correction(PWM_right)
   );
-
+ 
 endmodule

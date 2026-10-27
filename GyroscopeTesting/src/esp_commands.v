@@ -74,20 +74,23 @@ always@(posedge clk) begin
         pids_updated <= 1'd0;
         key_up_reg <= 1'd0;
         key_down_reg <= 1'd0;
+        just_got_data <= 1'd0;
+
 
         if(rx_data_valid && !rx_data_valid_d) begin
             received_byte <= uart_data;
             just_got_data <= 1'd1;
+
+            total_received_data <= {total_received_data[95:0], received_byte};
             /*
             // echo back
             tx_byte <= uart_data;
             tx_ready <= 1'd1;*/
         end
-        else if(just_got_data == 1'd1) begin
+        /*else if(just_got_data == 1'd1) begin
             // shift output left and add new byte
-            total_received_data <= {total_received_data[95:0], received_byte};
-            just_got_data <= 1'd0;
-        end
+            
+        end*/
 
         if(received_byte == SET_PIDS && !processing_command && just_got_data) begin
             processing_command <= 1'd1;
