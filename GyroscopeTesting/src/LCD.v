@@ -15,6 +15,14 @@ module LCD #(
     input [2:0] drive_state,
     input signed [15:0] set_speed,
     input [103:0] esp_uart_in,
+    input [11:0] pitch_p,
+    input [11:0] pitch_i,
+    input [11:0] pitch_d,
+    input [11:0] pitch_s,
+    input [11:0] motor_p,
+    input [11:0] motor_i,
+    input [11:0] motor_d,
+    input [11:0] motor_s,
     output rs,
     rw,
     e,
@@ -53,6 +61,15 @@ module LCD #(
     .demo_state(drive_state),
     .set_speed(set_speed),
     .esp_uart_in(esp_uart_in),
+    .pitch_p(pitch_p),
+    .pitch_i(pitch_i),
+    .pitch_d(pitch_d),
+    .pitch_s(pitch_s),
+    .motor_p(motor_p),
+    .motor_i(motor_i),
+    .motor_d(motor_d),
+    .motor_s(motor_s),
     .lcd_char(lcd_char)
 );
 endmodule
+

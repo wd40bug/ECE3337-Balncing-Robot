@@ -1,10 +1,7 @@
 module PID #(
     parameter IN_WIDTH  = 16,  // Width of setPos and processvar
     parameter OUT_WIDTH = 8,   // Width of the correction output
-    parameter SHIFT     = 4,
-    parameter Kp        = 8,
-    parameter Ki        = 1,
-    parameter Kd        = 2
+    parameter SHIFT     = 4
 ) (
     input  wire                        clk,
     input  wire                        rst,
