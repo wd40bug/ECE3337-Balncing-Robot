@@ -7,14 +7,14 @@ input tx_done,
 output [7:0] tx_data,
 output tx_ready,
 output on_state,
-output reg [11:0] pitch_p,
-output reg [11:0] pitch_i,
-output reg [11:0] pitch_d,
-output reg [11:0] pitch_shift,
-output reg [11:0] motor_p,
-output reg [11:0] motor_i,
-output reg [11:0] motor_d,
-output reg [11:0] motor_shift,
+output [11:0] pitch_p,
+output [11:0] pitch_i,
+output [11:0] pitch_d,
+output [11:0] pitch_shift,
+output [11:0] motor_p,
+output [11:0] motor_i,
+output [11:0] motor_d,
+output [11:0] motor_shift,
 output reg pids_updated,
 output key_up,
 output key_down,
@@ -28,6 +28,25 @@ localparam BUTTON_DOWN = 3'd3;
 localparam BUTTON_UP = 3'd4;
 localparam SET_PIDS = 3'd5;
 localparam NO_COMMAND = 3'd6;
+
+reg [11:0] pitch_p_reg = 12'd0;
+reg [11:0] pitch_i_reg = 12'd0;
+reg [11:0] pitch_d_reg = 12'd0;
+reg [11:0] pitch_shift_reg = 12'd0;
+reg [11:0] motor_p_reg = 12'd0;
+reg [11:0] motor_i_reg = 12'd0;
+reg [11:0] motor_d_reg = 12'd0;
+reg [11:0] motor_shift_reg = 12'd0;
+
+assign pitch_p = pitch_p_reg;
+assign pitch_i = pitch_i_reg;
+assign pitch_d = pitch_d_reg;
+assign pitch_shift = pitch_shift_reg;
+assign motor_p = motor_p_reg;
+assign motor_i = motor_i_reg;
+assign motor_d = motor_d_reg;
+assign motor_shift = motor_shift_reg;
+
 
 reg [2:0] cmd_state = NO_COMMAND;
 
@@ -80,14 +99,14 @@ always@(posedge clk) begin
         end
         else if(cmd_state == SET_PIDS && processing_command && cmd_length == 13 && just_got_data) begin
             cmd_length <= 0;
-            pitch_p <= total_received_data[95:84];
-            pitch_i <= total_received_data[83:72];
-            pitch_d <= total_received_data[71:60];
-            pitch_shift <= total_received_data[59:48];
-            motor_p <= total_received_data[47:36];
-            motor_i <= total_received_data[35:24];
-            motor_d <= total_received_data[23:12];
-            motor_shift <= total_received_data[11:0];
+            pitch_p_reg[11:0] <= total_received_data[95:84];
+            pitch_i_reg[11:0] <= total_received_data[83:72];
+            pitch_d_reg[11:0] <= total_received_data[71:60];
+            pitch_shift_reg[11:0] <= total_received_data[59:48];
+            motor_p_reg[11:0] <= total_received_data[47:36];
+            motor_i_reg[11:0] <= total_received_data[35:24];
+            motor_d_reg[11:0] <= total_received_data[23:12];
+            motor_shift_reg[11:0] <= total_received_data[11:0];
             pids_updated <= 1'd1;
             cmd_state <= NO_COMMAND;
         end

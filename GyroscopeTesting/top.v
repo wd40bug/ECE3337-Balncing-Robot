@@ -53,6 +53,16 @@ module top (
 
     wire [103:0] esp_uart_output;
 
+    // control PID from esp
+    wire [11:0] pitch_p; 
+    wire [11:0] pitch_i;
+    wire [11:0] pitch_d;
+    wire [11:0] pitch_shift;
+    wire [11:0] motor_p;
+    wire [11:0] motor_i;
+    wire [11:0] motor_d;
+    wire [11:0] motor_shift;
+
   Gyro gyro_inst (
       .clk(clk),
       .rx(gyro_rx),
@@ -66,6 +76,10 @@ module top (
       .clk(clk),
       .data_in(pitch_data_in),
       .pitch(pitch),
+        .P(pitch_p),
+        .I(pitch_I),
+        .D(pitch_D),
+        .shift(pitch_shift),
       .speed(set_speed)
   );
 
@@ -75,6 +89,10 @@ module top (
       .left_encoder_2(enc_left_2),
       .right_encoder_1(enc_right_1),
       .right_encoder_2(enc_right_2),
+        //.P
+        //.I
+        //.D
+        //.shift
       .left_enable(ena),
       .left_in1(in1),
       .left_in2(in2),
@@ -120,6 +138,7 @@ module top (
     wire [7:0] esp_rx_data;
     wire esp_rx_data_valid;
 
+
   esp_commands esp_inst (
     .clk(clk),
     .rx_data_valid(esp_rx_data_valid),
@@ -128,7 +147,15 @@ module top (
     .tx_done(esp_tx_done),
     .tx_data(esp_tx_data),
     .tx_ready(esp_tx_ready),
-    .esp_raw_output(esp_uart_output)
+    .esp_raw_output(esp_uart_output),
+    .pitch_p(pitch_p),
+    .pitch_i(pitch_i),
+    .pitch_d(pitch_d),
+    .pitch_shift(pitch_shift)
+    //.motor_p(motor_p),
+    //.motor_i(motor_i),
+    //.motor_d(motor_d),
+    //.motor_shift(motor_shift)
 );
 
     

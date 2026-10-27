@@ -4,6 +4,10 @@ module PIDPitchControl #(
     input clk,
     input data_in,
     input signed [7:0] pitch,
+    input [11:0] P,
+    input [11:0] I,
+    input [11:0] D,
+    input [11:0] shift,
     output signed [15:0] speed
 );
   PID #(
@@ -19,6 +23,10 @@ module PIDPitchControl #(
     .setPos(CENTER),
     .processvar(pitch),
     .sample_tick(data_in),
+    .P(P),
+    .I(I),
+    .D(D),
+    .shift(shift),
     .correction(speed)
   ); 
 

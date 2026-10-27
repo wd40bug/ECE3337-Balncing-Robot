@@ -4,6 +4,10 @@ module Motors (
     input left_encoder_2,
     input right_encoder_1,
     input right_encoder_2,
+    input [11:0] P,
+    input [11:0] I,
+    input [11:0] D,
+    input [11:0] shift,
     output left_enable,
     output left_in1,
     output left_in2,
@@ -48,6 +52,10 @@ module Motors (
       .read_speed_right(right_speed),
       .speed_left(set_speed),
       .speed_right(set_speed),
+        .P(P),
+        .I(I),
+        .D(D),
+        .shift(shift),
       .PWM_left(left_duty),
       .PWM_right(right_duty)
   );

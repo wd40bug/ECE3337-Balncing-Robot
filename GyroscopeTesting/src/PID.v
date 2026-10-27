@@ -11,6 +11,10 @@ module PID #(
     input  wire signed [ IN_WIDTH-1:0] setPos,
     input  wire signed [ IN_WIDTH-1:0] processvar,
     input  wire                        sample_tick,
+    input [11:0] P,
+    input [11:0] I,
+    input [11:0] D,
+    input [11:0] shift,
     output wire signed [OUT_WIDTH-1:0] correction
 );
 
@@ -34,9 +38,12 @@ module PID #(
   wire signed [2*IN_WIDTH-1:0] derivativeterm;
   wire signed [2*IN_WIDTH-1:0] full_sum;
 
-  assign propterm = ($signed(Kp) * $signed(err_comb)) >>> SHIFT;
+  /*assign propterm = ($signed(Kp) * $signed(err_comb)) >>> SHIFT;
   assign integralterm = ($signed(Ki) * integral) >>> SHIFT;
-  assign derivativeterm = ($signed(Kd) * $signed(derivative_comb)) >>> SHIFT;
+  assign derivativeterm = ($signed(Kd) * $signed(derivative_comb)) >>> SHIFT;*/
+  assign propterm = ($signed(P) * $signed(err_comb)) >>> shift;
+  assign integralterm = ($signed(I) * integral) >>> shift;
+  assign derivativeterm = ($signed(D) * $signed(derivative_comb)) >>> shift;
 
   assign full_sum = propterm + integralterm + derivativeterm;
 

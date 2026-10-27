@@ -6,6 +6,10 @@ module PIDMotorControl (
     input signed [15:0] read_speed_right,
     input signed [15:0] speed_left,
     input signed [15:0] speed_right,
+    input [11:0] P,
+    input [11:0] I,
+    input [11:0] D,
+    input [11:0] shift,
     output signed [7:0] PWM_left,
     output signed [7:0] PWM_right
 );
@@ -23,6 +27,10 @@ module PIDMotorControl (
       .setPos(speed_left),
       .processvar(read_speed_left),
       .sample_tick(data_in_left),
+        .P(16),
+        .I(0),
+        .D(0),
+        .shift(4),
       .correction(PWM_left)
   );
 
@@ -39,6 +47,10 @@ module PIDMotorControl (
       .setPos(speed_right),
       .processvar(read_speed_right),
       .sample_tick(data_in_right),
+        .P(16),
+        .I(0),
+        .D(0),
+        .shift(4),
       .correction(PWM_right)
   );
 
