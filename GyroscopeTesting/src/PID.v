@@ -16,8 +16,8 @@ module PID #(
 );
 
   wire signed [12:0] P_signed = {1'b0, P};
-  wire signed [12:0] I_signed = {1'b0, P};
-  wire signed [12:0] D_signed = {1'b0, P};
+  wire signed [12:0] I_signed = {1'b0, I};
+  wire signed [12:0] D_signed = {1'b0, D};
 
   // Dynamic output limits based on OUT_WIDTH (e.g., 8-bit -> Max: 127, Min: -128)
   localparam signed [2*IN_WIDTH-1:0] OUT_MAX = (1 << (OUT_WIDTH - 1)) - 1;

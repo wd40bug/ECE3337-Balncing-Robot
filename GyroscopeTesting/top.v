@@ -29,7 +29,7 @@ module top (
     in4
 );
 
-  assign led = 6'b101010;
+  //assign led = 6'b101010;
 
   // --- Sensor Readings ---
   // Angles
@@ -52,6 +52,8 @@ module top (
   wire signed [7:0] left_duty, right_duty;
 
   wire [103:0] esp_uart_output;
+  wire [5:0] leds_wire;
+    assign led = leds_wire;
 
   // control PID from esp
   wire [ 11:0] pitch_p;
@@ -62,6 +64,7 @@ module top (
   wire [ 11:0] motor_i;
   wire [ 11:0] motor_d;
   wire [ 11:0] motor_shift;
+    wire enabled;
 
   Gyro gyro_inst (
       .clk(clk),
@@ -93,6 +96,7 @@ module top (
       .I(motor_i),
       .D(motor_d),
       .shift(motor_shift),
+        .enabled(enabled),
       .left_enable(ena),
       .left_in1(in1),
       .left_in2(in2),
@@ -163,7 +167,9 @@ module top (
       .motor_p(motor_p),
       .motor_i(motor_i),
       .motor_d(motor_d),
-      .motor_shift(motor_shift)
+      .motor_shift(motor_shift),
+        .leds(leds_wire),
+    .on_state(enabled)
   );
 
   uart_tx uart_tx_esp (

@@ -8,6 +8,7 @@ module Motors (
     input [11:0] I,
     input [11:0] D,
     input [11:0] shift,
+    input enabled,
     output left_enable,
     output left_in1,
     output left_in2,
@@ -24,6 +25,13 @@ module Motors (
 
   wire data_in_left;
   wire data_in_right;
+
+    wire signed [7:0] left_duty_in;
+    wire signed [7:0] right_duty_in;
+    
+    assign left_duty = left_duty_in & {8{enabled}};
+    assign right_duty = right_duty_in & {8{enabled}};
+
 
   Encoder encoder_inst_left (
       .clk(clk),
@@ -56,15 +64,15 @@ module Motors (
         .I(I),
         .D(D),
         .shift(shift),
-      .PWM_left(left_duty),
-      .PWM_right(right_duty)
+      .PWM_left(left_duty_in),
+      .PWM_right(right_duty_in)
   );
 
   MotorControl motor_control_inst (
       .clk(clk),
       .rst(1'b0),
-      .left_duty(left_duty),
-      .right_duty(right_duty),
+      .left_duty(left_duty),    // WAS: left_duty_in 10/28/2026
+      .right_duty(right_duty), // WAS: right_duty_in 10/28/2026
       .left1(left_in1),
       .left2(left_in2),
       .right1(right_in1),

@@ -391,7 +391,7 @@ module lcd_driver #(
           2: lcd_char <= "P";
           3: lcd_char <= ":";
           4, 5: lcd_char <= " ";
-          default: lcd_char <= esp_uart_ascii[(lcd_rqst-5)*8-1 -: 8];
+          default: lcd_char <= esp_uart_ascii[26 * 8 - 1 -(lcd_rqst-6)*8 -: 8];
         endcase
       end
 

@@ -19,7 +19,8 @@ output reg pids_updated,
 output key_up,
 output key_down,
 output reg [7:0] key_code,
-output [103:0] esp_raw_output
+output [103:0] esp_raw_output,
+output [5:0] leds
 );
 
 localparam TURN_ON = 3'd1;
@@ -47,11 +48,14 @@ assign motor_i = motor_i_reg;
 assign motor_d = motor_d_reg;
 assign motor_shift = motor_shift_reg;
 
+reg [5:0] leds_reg = 6'b111111;
+assign leds = leds_reg;
+
 
 reg [2:0] cmd_state = NO_COMMAND;
 
 reg processing_command = 1'd0;
-reg cmd_length = 4'd0;
+reg [3:0] cmd_length = 4'd0;
 
 reg rx_data_valid_d;
 
@@ -81,7 +85,7 @@ always@(posedge clk) begin
             received_byte <= uart_data;
             just_got_data <= 1'd1;
 
-            total_received_data <= {total_received_data[95:0], received_byte};
+            total_received_data <= {total_received_data[95:0], uart_data};
             /*
             // echo back
             tx_byte <= uart_data;
@@ -96,11 +100,13 @@ always@(posedge clk) begin
             processing_command <= 1'd1;
             cmd_state <= SET_PIDS;
             cmd_length <= cmd_length + 1;
+            leds_reg[0] <= 1'd0;
         end
         else if(cmd_state == SET_PIDS && processing_command && cmd_length < 13 && just_got_data) begin
             cmd_length <= cmd_length + 1;
+            leds_reg[1] <= 1'd0;
         end
-        else if(cmd_state == SET_PIDS && processing_command && cmd_length == 13 && just_got_data) begin
+        else if(cmd_state == SET_PIDS && processing_command && cmd_length == 13 && !just_got_data) begin
             cmd_length <= 0;
             pitch_p_reg[11:0] <= total_received_data[95:84];
             pitch_i_reg[11:0] <= total_received_data[83:72];
@@ -110,8 +116,10 @@ always@(posedge clk) begin
             motor_i_reg[11:0] <= total_received_data[35:24];
             motor_d_reg[11:0] <= total_received_data[23:12];
             motor_shift_reg[11:0] <= total_received_data[11:0];
+            processing_command <= 1'd0;
             pids_updated <= 1'd1;
             cmd_state <= NO_COMMAND;
+            leds_reg[2] <= 1'd0;
         end
         else if(received_byte == BUTTON_UP && !processing_command && just_got_data) begin
             processing_command <= 1'd1;
@@ -136,10 +144,12 @@ always@(posedge clk) begin
         else if(received_byte == TURN_ON && !processing_command && just_got_data) begin
             on_state_reg <= 1'd1;
             cmd_state <= NO_COMMAND;
+            leds_reg[3] <= 1'd0;
         end
         else if(received_byte == TURN_OFF && !processing_command && just_got_data) begin
             on_state_reg <= 1'd0;
             cmd_state <= NO_COMMAND;
+            leds_reg[4] <= 1'd0;
         end
         else if(cmd_state == NO_COMMAND) begin
         end
