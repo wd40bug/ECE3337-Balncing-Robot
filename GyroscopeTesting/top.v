@@ -53,7 +53,7 @@ module top (
 
   wire [103:0] esp_uart_output;
   wire [5:0] leds_wire;
-    assign led = leds_wire;
+    //assign led[4:0] = leds_wire[4:0];
 
   // control PID from esp
   wire [ 11:0] pitch_p;
@@ -66,13 +66,16 @@ module top (
   wire [ 11:0] motor_shift;
     wire enabled;
 
+    wire gyro_led_wire;
+    assign led[0] = gyro_led_wire;
   Gyro gyro_inst (
       .clk(clk),
       .rx(gyro_rx),
       .tx(gyro_tx),
       .pitch(pitch),
       .data_in(pitch_data_in),
-      .raw_gyro(raw_gyro)
+      .raw_gyro(raw_gyro),
+    .led_wire(gyro_led_wire)
   );
 
   PIDPitchControl pitch_control (

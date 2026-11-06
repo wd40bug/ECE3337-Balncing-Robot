@@ -57,7 +57,7 @@ module PID #(
   localparam signed [2*IN_WIDTH-1:0] INT_MAX = 32'sd50000;
   localparam signed [2*IN_WIDTH-1:0] INT_MIN = -32'sd50000;
 
-  always @(posedge clk or negedge rst) begin
+  always @(posedge sample_tick or negedge rst) begin
     if (!rst) begin
       preverr  <= 0;
       integral <= 0;

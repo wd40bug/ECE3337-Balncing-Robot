@@ -68,6 +68,7 @@ reg [2:0] startup_state = POWER_UP;
 
     reg led_wire_reg = 1'd1;
     assign led_wire = led_wire_reg;
+    //assign led_wire = pitch_valid_out;
 
     assign gyro_response = gyro_output;
     
@@ -108,11 +109,15 @@ always@(posedge clk) begin
             end
             else if (quat_bytes == 4'd9) begin
                 quaternion_done <= 1'b1;
+                quat_bytes <= 0;
             end
         end
         else if (quaternion_done && pitch_valid_out) begin
             quat_bytes <= 4'd0;
             quaternion_done <= 1'b0;
+        end
+        if(pitch_valid_out == 1'd1) begin
+            led_wire_reg <= 1'd0;
         end
     end
 
@@ -174,7 +179,7 @@ always@(posedge clk) begin
             if(gyro_output[23:0] == 24'hBB_01_A0) begin
                 startup_state <= CONFIG;
                 command_sent <= 1'd0;
-                led_wire_reg <= 1'd0;
+                //led_wire_reg <= 1'd0;
                 reset_delay_ms <= 1'd1;
             end
         end
@@ -192,7 +197,7 @@ always@(posedge clk) begin
             if(gyro_output[15:0] == 16'hEE_01) begin
                 startup_state <= WAIT_CONFIG;
                 command_sent <= 1'd0;
-                led_wire_reg <= 1'd1;
+                //led_wire_reg <= 1'd1;
                 reset_delay_ms <= 1'd1;
             end
         end
@@ -213,7 +218,7 @@ always@(posedge clk) begin
             if(gyro_output[15:0] == 16'hEE_01 && calibration_sent) begin
                 startup_state <= NDOF;
                 command_sent <= 1'd0;
-                led_wire_reg <= 1'd0;
+                //led_wire_reg <= 1'd0;
                 reset_delay_ms <= 1'd1;
             end
         end
@@ -234,13 +239,13 @@ always@(posedge clk) begin
             if(gyro_output [15:0] == 16'hEE_01 && ndof_sent) begin
                 startup_state <= WAIT_NDOF;
                 command_sent <= 1'd0;   
-                led_wire_reg <= 1'd1;
+                //led_wire_reg <= 1'd1;
                 reset_delay_ms <= 1'd1;
             end
             else if(gyro_output[15:0] == 16'hEE_07 && ndof_sent) begin
                 command_sent <= 1'd0;
                 reset_delay_ms <= 1'd1;
-                led_wire_reg = ~led_wire_reg;
+                //led_wire_reg = ~led_wire_reg;
             end
         end
         WAIT_NDOF: begin
@@ -255,7 +260,7 @@ always@(posedge clk) begin
                 load_command_flag <= 1'd1;
             end
             if(gyro_output[7:0] == 8'h0C) begin
-                led_wire_reg <= 1'd0;
+                //led_wire_reg <= 1'd0;
                 reset_delay_ms <= 1'd1;
                 command_sent <= 1'd0;
                 startup_state <= CHECK_STATUS;
@@ -263,7 +268,7 @@ always@(posedge clk) begin
             else if(gyro_output[15:0] == 16'hEE_07) begin
                 command_sent <= 1'd0;
                 reset_delay_ms <= 1'd1;
-                led_wire_reg <= ~led_wire_reg;
+                //led_wire_reg <= ~led_wire_reg;
             end
             /*else begin
                 startup_state <= NDOF;
@@ -306,7 +311,7 @@ always@(posedge clk) begin
                 reset_delay_ms <= 1'd1;
             end
             else if(waiting && !waiting_1) begin
-                ms_to_delay <= 10'd10;
+                ms_to_delay <= 10'd3;
                 waiting_1 <= 1'd1;
             end
             else if(reset_delay_ms && waiting) begin

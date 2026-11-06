@@ -5,7 +5,8 @@ module Gyro (
     output signed [7:0] pitch,
     output data_in,
     // Debugging
-    output [63:0] raw_gyro
+    output [63:0] raw_gyro,
+    output led_wire
 );
 
   wire tx_ready;
@@ -41,6 +42,7 @@ module Gyro (
       .tx_done(tx_done),
       .tx_data(tx_data),
       .tx_ready(tx_ready),
+        .led_wire(led_wire),
       .gyro_response(raw_gyro),
       .pitch_angle(pitch),
       .pitch_valid_out(data_in)
