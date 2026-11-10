@@ -437,6 +437,7 @@ delay_ms delayer(
     .time_elapsed(delay_done_wire)
 );
 
+// - 71 to y to subtract .5 degree offset
 pitch_lut pitch_calc(
     .clk(clk),
     .rst_neg(pitch_rst),
