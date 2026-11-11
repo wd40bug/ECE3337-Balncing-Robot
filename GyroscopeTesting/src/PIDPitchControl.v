@@ -8,11 +8,11 @@ module PIDPitchControl #(
     input [11:0] I,
     input [11:0] D,
     input [11:0] shift,
-    output signed [15:0] speed
+    output signed [7:0] duty
 );
   PID #(
     .IN_WIDTH(8),
-    .OUT_WIDTH(16)
+    .OUT_WIDTH(8)
   ) pid_pitch (
     .clk(clk),
     .rst(1'b1),
@@ -23,7 +23,7 @@ module PIDPitchControl #(
     .I(I),
     .D(D),
     .shift(shift),
-    .correction(speed)
+    .correction(duty)
   ); 
 
 endmodule

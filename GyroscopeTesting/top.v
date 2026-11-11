@@ -29,6 +29,8 @@ module top (
     in4
 );
 
+  assign led[5] = 0;
+
   //assign led = 6'b101010;
 
   // --- Sensor Readings ---
@@ -43,31 +45,32 @@ module top (
 
   // --- System Variables ---
   // Set Speed
-  wire signed [15:0] set_speed;
+  reg signed [15:0] set_speed = 0;
   // Drive state
   reg [2:0] drive_state = 3'd0;
   // --- Other ---
   // Debugging
   wire [63:0] raw_gyro;
   wire signed [7:0] left_duty, right_duty;
+  wire signed [7:0] set_duty;
 
   wire [103:0] esp_uart_output;
   wire [5:0] leds_wire;
-    //assign led[4:0] = leds_wire[4:0];
+  //assign led[4:0] = leds_wire[4:0];
 
   // control PID from esp
-  wire [ 11:0] pitch_p;
-  wire [ 11:0] pitch_i;
-  wire [ 11:0] pitch_d;
-  wire [ 11:0] pitch_shift;
-  wire [ 11:0] motor_p;
-  wire [ 11:0] motor_i;
-  wire [ 11:0] motor_d;
-  wire [ 11:0] motor_shift;
-    wire enabled;
+  wire [11:0] pitch_p;
+  wire [11:0] pitch_i;
+  wire [11:0] pitch_d;
+  wire [11:0] pitch_shift;
+  wire [11:0] motor_p;
+  wire [11:0] motor_i;
+  wire [11:0] motor_d;
+  wire [11:0] motor_shift;
+  wire enabled;
 
-    wire gyro_led_wire;
-    assign led[0] = gyro_led_wire;
+  wire gyro_led_wire;
+  assign led[0] = gyro_led_wire;
   Gyro gyro_inst (
       .clk(clk),
       .rx(gyro_rx),
@@ -75,7 +78,7 @@ module top (
       .pitch(pitch),
       .data_in(pitch_data_in),
       .raw_gyro(raw_gyro),
-    .led_wire(gyro_led_wire)
+      .led_wire(gyro_led_wire)
   );
 
   PIDPitchControl pitch_control (
@@ -86,7 +89,7 @@ module top (
       .I(pitch_i),
       .D(pitch_d),
       .shift(pitch_shift),
-      .speed(set_speed)
+      .duty(set_duty)
   );
 
   Motors motors_inst (
@@ -99,14 +102,14 @@ module top (
       .I(motor_i),
       .D(motor_d),
       .shift(motor_shift),
-        .enabled(enabled),
+      .enabled(enabled),
       .left_enable(ena),
       .left_in1(in1),
       .left_in2(in2),
       .right_enable(enb),
       .right_in1(in3),
       .right_in2(in4),
-      .set_speed(-set_speed),
+      .duty(set_duty),
       // Debugging
       .left_speed(left_speed),
       .right_speed(right_speed),
@@ -125,6 +128,7 @@ module top (
       .gyro_raw(raw_gyro),
       .left_speed(left_speed),
       .right_speed(right_speed),
+      .set_pwm(set_duty),
       .left_duty(left_duty),
       .right_duty(right_duty),
       .drive_state(drive_state),
@@ -171,8 +175,8 @@ module top (
       .motor_i(motor_i),
       .motor_d(motor_d),
       .motor_shift(motor_shift),
-        .leds(leds_wire),
-    .on_state(enabled)
+      .leds(leds_wire),
+      .on_state(enabled)
   );
 
   uart_tx uart_tx_esp (

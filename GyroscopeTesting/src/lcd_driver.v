@@ -10,6 +10,7 @@ module lcd_driver #(
     input [63:0] RawGyroReading,
     input signed [15:0] LeftEncoderReading,
     input signed [15:0] RightEncoderReading,
+    input signed [7:0] set_pwm,
     input signed [7:0] pwm_left,
     input signed [7:0] pwm_right,
     input [2:0] demo_state,
@@ -159,74 +160,85 @@ module lcd_driver #(
 
   wire [4 * 4 - 1:0] pitch_s_bcd;
   binary_to_bcd #(
-    .N_BITS(12),
-    .DIGITS(4)
+      .N_BITS(12),
+      .DIGITS(4)
   ) binary_to_bcd_inst7 (
-    .binary_in(pitch_s),
-    .bcd_out(pitch_s_bcd)
+      .binary_in(pitch_s),
+      .bcd_out  (pitch_s_bcd)
   );
 
   wire [4 * 4 - 1:0] pitch_p_bcd;
   binary_to_bcd #(
-    .N_BITS(12),
-    .DIGITS(4)
+      .N_BITS(12),
+      .DIGITS(4)
   ) binary_to_bcd_inst8 (
-    .binary_in(pitch_p),
-    .bcd_out(pitch_p_bcd)
+      .binary_in(pitch_p),
+      .bcd_out  (pitch_p_bcd)
   );
 
   wire [4 * 4 - 1:0] pitch_i_bcd;
   binary_to_bcd #(
-    .N_BITS(12),
-    .DIGITS(4)
+      .N_BITS(12),
+      .DIGITS(4)
   ) binary_to_bcd_inst9 (
-    .binary_in(pitch_i),
-    .bcd_out(pitch_i_bcd)
+      .binary_in(pitch_i),
+      .bcd_out  (pitch_i_bcd)
   );
 
   wire [4 * 4 - 1:0] pitch_d_bcd;
   binary_to_bcd #(
-    .N_BITS(12),
-    .DIGITS(4)
+      .N_BITS(12),
+      .DIGITS(4)
   ) binary_to_bcd_inst10 (
-    .binary_in(pitch_d),
-    .bcd_out(pitch_d_bcd)
+      .binary_in(pitch_d),
+      .bcd_out  (pitch_d_bcd)
   );
 
   wire [4 * 4 - 1:0] motor_s_bcd;
   binary_to_bcd #(
-    .N_BITS(12),
-    .DIGITS(4)
+      .N_BITS(12),
+      .DIGITS(4)
   ) binary_to_bcd_inst11 (
-    .binary_in(motor_s),
-    .bcd_out(motor_s_bcd)
+      .binary_in(motor_s),
+      .bcd_out  (motor_s_bcd)
   );
 
   wire [4 * 4 - 1:0] motor_p_bcd;
   binary_to_bcd #(
-    .N_BITS(12),
-    .DIGITS(4)
+      .N_BITS(12),
+      .DIGITS(4)
   ) binary_to_bcd_inst12 (
-    .binary_in(motor_p),
-    .bcd_out(motor_p_bcd)
+      .binary_in(motor_p),
+      .bcd_out  (motor_p_bcd)
   );
 
   wire [4 * 4 - 1:0] motor_i_bcd;
   binary_to_bcd #(
-    .N_BITS(12),
-    .DIGITS(4)
+      .N_BITS(12),
+      .DIGITS(4)
   ) binary_to_bcd_inst13 (
-    .binary_in(motor_i),
-    .bcd_out(motor_i_bcd)
+      .binary_in(motor_i),
+      .bcd_out  (motor_i_bcd)
   );
 
   wire [4 * 4 - 1:0] motor_d_bcd;
   binary_to_bcd #(
-    .N_BITS(12),
-    .DIGITS(4)
+      .N_BITS(12),
+      .DIGITS(4)
   ) binary_to_bcd_inst14 (
-    .binary_in(motor_d),
-    .bcd_out(motor_d_bcd)
+      .binary_in(motor_d),
+      .bcd_out  (motor_d_bcd)
+  );
+
+  wire [4 * 3 - 1:0] set_pwm_bcd;
+  wire set_pwm_sign;
+  binary_to_bcd_signed #(
+      .N_BITS(8),
+      .DIGITS(3)
+  ) binary_to_bcd_inst15 (
+      .binary_in(set_pwm),
+      .bcd_out(set_pwm_bcd),
+      .sign(set_pwm_sign)
   );
 
   always @(*) begin
@@ -370,17 +382,16 @@ module lcd_driver #(
           8: lcd_char <= {4'b0011, pitch_bcd[3:0]};
 
           16: lcd_char <= "S";
-          17: lcd_char <= "p";
-          18: lcd_char <= "e";
-          19: lcd_char <= "e";
-          20: lcd_char <= "d";
-          21: lcd_char <= ":";
-          22: lcd_char <= set_speed_sign ? "+" : "-";
-          23: lcd_char <= {4'b0011, set_speed_bcd[19:16]};
-          24: lcd_char <= {4'b0011, set_speed_bcd[15:12]};
-          25: lcd_char <= {4'b0011, set_speed_bcd[11:8]};
-          26: lcd_char <= {4'b0011, set_speed_bcd[7:4]};
-          27: lcd_char <= {4'b0011, set_speed_bcd[3:0]};
+          17: lcd_char <= "e";
+          18: lcd_char <= "t";
+          19: lcd_char <= "P";
+          20: lcd_char <= "W";
+          21: lcd_char <= "M";
+          22: lcd_char <= ":";
+          24: lcd_char <= set_pwm_sign ? "+" : "-";
+          25: lcd_char <= {4'b0011, set_pwm_bcd[11:8]};
+          26: lcd_char <= {4'b0011, set_pwm_bcd[7:4]};
+          27: lcd_char <= {4'b0011, set_pwm_bcd[3:0]};
           default: lcd_char <= " ";
         endcase
       end
@@ -391,7 +402,7 @@ module lcd_driver #(
           2: lcd_char <= "P";
           3: lcd_char <= ":";
           4, 5: lcd_char <= " ";
-          default: lcd_char <= esp_uart_ascii[26 * 8 - 1 -(lcd_rqst-6)*8 -: 8];
+          default: lcd_char <= esp_uart_ascii[26*8-1-(lcd_rqst-6)*8-:8];
         endcase
       end
 
@@ -404,13 +415,13 @@ module lcd_driver #(
           4: lcd_char <= "h";
           5: lcd_char <= ":";
           7: lcd_char <= "S";
-          8,9,10,11: lcd_char <= {4'b0011, pitch_s_bcd[15 - (lcd_rqst - 8) * 4 -: 4 ]};
+          8, 9, 10, 11: lcd_char <= {4'b0011, pitch_s_bcd[15-(lcd_rqst-8)*4-:4]};
           16: lcd_char <= "P";
-          17,18,19,20: lcd_char <= {4'b0011, pitch_p_bcd[15 - (lcd_rqst - 17) * 4 -: 4 ]};
+          17, 18, 19, 20: lcd_char <= {4'b0011, pitch_p_bcd[15-(lcd_rqst-17)*4-:4]};
           21: lcd_char <= "I";
-          22,23,24,25: lcd_char <= {4'b0011, pitch_i_bcd[15 - (lcd_rqst - 22) * 4 -: 4 ]};
+          22, 23, 24, 25: lcd_char <= {4'b0011, pitch_i_bcd[15-(lcd_rqst-22)*4-:4]};
           26: lcd_char <= "D";
-          27,28,29,30: lcd_char <= {4'b0011, pitch_d_bcd[15 - (lcd_rqst - 27) * 4 -: 4 ]};
+          27, 28, 29, 30: lcd_char <= {4'b0011, pitch_d_bcd[15-(lcd_rqst-27)*4-:4]};
           default: lcd_char <= " ";
         endcase
       end
@@ -424,13 +435,13 @@ module lcd_driver #(
           4: lcd_char <= "r";
           5: lcd_char <= ":";
           7: lcd_char <= "S";
-          8,9,10,11: lcd_char <= {4'b0011, motor_s_bcd[15 - (lcd_rqst - 8) * 4 -: 4 ]};
+          8, 9, 10, 11: lcd_char <= {4'b0011, motor_s_bcd[15-(lcd_rqst-8)*4-:4]};
           16: lcd_char <= "P";
-          17,18,19,20: lcd_char <= {4'b0011, motor_p_bcd[15 - (lcd_rqst - 17) * 4 -: 4 ]};
+          17, 18, 19, 20: lcd_char <= {4'b0011, motor_p_bcd[15-(lcd_rqst-17)*4-:4]};
           21: lcd_char <= "I";
-          22,23,24,25: lcd_char <= {4'b0011, motor_i_bcd[15 - (lcd_rqst - 22) * 4 -: 4 ]};
+          22, 23, 24, 25: lcd_char <= {4'b0011, motor_i_bcd[15-(lcd_rqst-22)*4-:4]};
           26: lcd_char <= "D";
-          27,28,29,30: lcd_char <= {4'b0011, motor_d_bcd[15 - (lcd_rqst - 27) * 4 -: 4 ]};
+          27, 28, 29, 30: lcd_char <= {4'b0011, motor_d_bcd[15-(lcd_rqst-27)*4-:4]};
           default: lcd_char <= " ";
         endcase
       end
