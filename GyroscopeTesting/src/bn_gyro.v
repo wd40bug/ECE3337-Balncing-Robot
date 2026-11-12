@@ -441,6 +441,7 @@ wire [15:0] offset_qw;
 wire [15:0] offset_qx;
 wire [15:0] offset_qy;
 wire [15:0] offset_qz;
+wire offset_ready;
 
 quaternion_offset offset(
     .clk(clk),
@@ -448,16 +449,19 @@ quaternion_offset offset(
     .qx_in(qx),
     .qy_in(qy),
     .qz_in(qz),
+    .calc_ready(quaternion_done),
     .qw_out(offset_qw),
     .qx_out(offset_qx),
     .qy_out(offset_qy),
-    .qz_out(offset_qz)
+    .qz_out(offset_qz),
+    .ready(offset_ready)
 );
 
 pitch_lut pitch_calc(
     .clk(clk),
     .rst_neg(pitch_rst),
-    .in_valid(quaternion_done),
+    //.in_valid(quaternion_done),
+    .in_valid(offset_ready),
     .qw(offset_qw),
     .qx(offset_qx),
     .qy(offset_qy),

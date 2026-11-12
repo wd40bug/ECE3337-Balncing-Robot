@@ -19,12 +19,12 @@ module Motors (
     // Debugging
     output signed [15:0] left_speed,
     output signed [15:0] right_speed,
-    output signed [7:0] left_duty,
-    output signed [7:0] right_duty
+    output reg signed [7:0] left_duty,
+    output reg signed [7:0] right_duty
 );
 
-  reg left_duty;
-  reg right_duty;
+  //reg left_duty;
+  //reg right_duty;
 
   always @(*) begin
     if (!enabled) begin
