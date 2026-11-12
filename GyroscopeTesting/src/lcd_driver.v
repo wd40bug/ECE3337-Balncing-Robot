@@ -24,6 +24,8 @@ module lcd_driver #(
     input [11:0] motor_i,
     input [11:0] motor_d,
     input [11:0] motor_s,
+    input signed [15:0] W_off,
+    input signed [15:0] Y_off,
     output reg [7:0] lcd_char
 );
 
@@ -241,6 +243,22 @@ module lcd_driver #(
       .sign(set_pwm_sign)
   );
 
+  wire [5 * 4 - 1:0] W_off_bcd;
+  wire W_off_sign;
+  binary_to_bcd_signed #(.N_BITS(16), .DIGITS(4)) binary_to_bcd_inst16 (
+      .binary_in(W_off),
+      .bcd_out(W_off_bcd),
+      .sign(W_off_sign)
+  );
+
+  wire [5 * 4 - 1:0] Y_off_bcd;
+  wire Y_off_sign;
+  binary_to_bcd_signed #(.N_BITS(16), .DIGITS(4)) binary_to_bcd_inst16 (
+      .binary_in(Y_off),
+      .bcd_out(Y_off_bcd),
+      .sign(Y_off_sign)
+  );
+
   always @(*) begin
     case (page_num)
       0: begin
@@ -443,6 +461,33 @@ module lcd_driver #(
           26: lcd_char <= "D";
           27, 28, 29, 30: lcd_char <= {4'b0011, motor_d_bcd[15-(lcd_rqst-27)*4-:4]};
           default: lcd_char <= " ";
+        endcase
+      end
+
+      8: begin
+        case (lcd_rqst)
+            0: lcd_char <= "W";
+            1: lcd_char <= "o";
+            2: lcd_char <= "f";
+            3: lcd_char <= "f";
+            4: lcd_char <= ":";
+            6: lcd_char <= W_off_sign ? "+" : "-";
+            7: lcd_char <= {4'b0011, W_off_bcd[19:16]};
+            8: lcd_char <= {4'b0011, W_off_bcd[14:12]};
+            9: lcd_char <= {4'b0011, W_off_bcd[11:8]};
+            10: lcd_char <= {4'b0011, W_off_bcd[7:4]};
+            11: lcd_char <= {4'b0011, W_off_bcd[3:0]};
+            16: lcd_char <= "Y";
+            17: lcd_char <= "o";
+            18: lcd_char <= "f";
+            19: lcd_char <= "f";
+            20: lcd_char <= ":";
+            22: lcd_char <= Y_off_sign ? "+" : "-";
+            23: lcd_char <= {4'b0011, Y_off_bcd[19:16]};
+            24: lcd_char <= {4'b0011, Y_off_bcd[14:12]};
+            25: lcd_char <= {4'b0011, Y_off_bcd[11:8]};
+            26: lcd_char <= {4'b0011, Y_off_bcd[7:4]};
+            27: lcd_char <= {4'b0011, Y_off_bcd[3:0]};
         endcase
       end
 

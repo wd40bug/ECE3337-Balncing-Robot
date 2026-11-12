@@ -3,8 +3,10 @@
 #include "AsyncWebSocket.h"
 #include "ESPAsyncWebServer.h"
 #include "ESPmDNS.h"
+#include "HardwareSerial.h"
 #include "LittleFS.h"
 #include "WiFi.h"
+#include <cmath>
 
 const char *ssid = "BALANCING_ROBOT";
 const char *password = "";
@@ -17,6 +19,7 @@ const uint8_t CMD_OFF = 0x02;
 const uint8_t CMD_BTNDOWN = 0x03;
 const uint8_t CMD_BTNUP = 0x04;
 const uint8_t CMD_PIDS = 0x05;
+const uint8_t CMD_SET_ANGLE_OFFSET = 0x10;
 
 const uint8_t TIME_SIZE = 4;
 const uint8_t PITCH_SIZE = 1;
@@ -122,6 +125,36 @@ void setup() {
   server.on("/on", [](AsyncWebServerRequest *request) {
     Serial.println("Turning On");
     Serial2.write(CMD_ON);
+    request->send(200);
+  });
+
+  server.on("/setValue", [](AsyncWebServerRequest *request) {
+    Serial.println("/setValue");
+    float setValue = 0;
+    if (request->hasParam("value", true)) {
+      const AsyncWebParameter *p = request->getParam("value", true);
+      const String& value = p->value().c_str();
+      setValue = value.toFloat();
+    }else{
+      Serial.println("No value field!");
+      request->send(400, "text/plain", "No 'value' field");
+      return;
+    }
+
+    Serial.printf("Set value %f\n", setValue);
+
+    float alpha = setValue / 2;
+    float W_off = std::cos(alpha * PI / 180.0) * 16384;
+    float Y_off = std::sin(alpha * PI / 180.0) * 16384;
+
+    int16_t W_off_int = std::round(W_off);
+    int16_t Y_off_int = std::round(Y_off);
+
+    Serial2.write(CMD_SET_ANGLE_OFFSET);
+    Serial2.write((W_off_int >> 8) & 0xFF );
+    Serial2.write(W_off_int & 0xFF );
+    Serial2.write((Y_off_int >> 8) & 0xFF );
+    Serial2.write(Y_off_int & 0xFF );
     request->send(200);
   });
 

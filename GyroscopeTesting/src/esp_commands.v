@@ -15,6 +15,8 @@ output [11:0] motor_p,
 output [11:0] motor_i,
 output [11:0] motor_d,
 output [11:0] motor_shift,
+output signed [15:0] W_off,
+output signed [15:0] Y_off,
 output reg pids_updated,
 output key_up,
 output key_down,
@@ -23,12 +25,13 @@ output [103:0] esp_raw_output,
 output [5:0] leds
 );
 
+localparam NO_COMMAND = 3'd0;
 localparam TURN_ON = 3'd1;
 localparam TURN_OFF = 3'd2;
 localparam BUTTON_DOWN = 3'd3;
 localparam BUTTON_UP = 3'd4;
 localparam SET_PIDS = 3'd5;
-localparam NO_COMMAND = 3'd6;
+localparam SET_ANGLE_OFFSET = 8'h10;
 
 reg [11:0] pitch_p_reg = 12'd0;
 reg [11:0] pitch_i_reg = 12'd0;
@@ -52,7 +55,7 @@ reg [5:0] leds_reg = 6'b111111;
 assign leds = leds_reg;
 
 
-reg [2:0] cmd_state = NO_COMMAND;
+reg [7:0] cmd_state = NO_COMMAND;
 
 reg processing_command = 1'd0;
 reg [3:0] cmd_length = 4'd0;
@@ -150,6 +153,22 @@ always@(posedge clk) begin
             on_state_reg <= 1'd0;
             cmd_state <= NO_COMMAND;
             leds_reg[4] <= 1'd0;
+        end
+        else if (received_byte == SET_ANGLE_OFFSET && !processing_command && just_got_data) begin
+            processing_command <= 1;
+            cmd_state <= SET_ANGLE_OFFSET;
+            cmd_length <= 1;
+        end
+        else if (cmd_state == SET_ANGLE_OFFSET && processing_command && just_got_data) begin
+            if (cmd_length < 4) begin
+                cmd_length <= cmd_length + 1;
+            end else begin 
+                cmd_length <= 0;
+                processing_command <= 0;
+                cmd_state <= NO_COMMAND;
+                W_off <= total_received_data[31:16];
+                Y_off <= total_received_data[15:0];
+            end
         end
         else if(cmd_state == NO_COMMAND) begin
         end

@@ -36,7 +36,7 @@
 
     .PID {
       display: grid;
-      grid-template-columns: 1fr 3fr 1fr 3fr 1fr 3fr 2fr 3fr;
+      grid-template-columns: 1fr 3fr 1fr 3fr 1fr 3fr 2fr 3fr 1fr;
       margin-bottom: 25px;
       padding: 10px;
       background-color: lightgray;
@@ -77,37 +77,30 @@
       fetch("/unpress/" + name).catch(error => console.error('Error reaching ESP32:', error));
     }
 
-    var isOn = false;
-
-    function toggleOn() {
-      const toggleBtn = document.getElementById("toggleBtn");
-      if (isOn) {
-        fetch("/off").then(() => {
-          toggleBtn.textContent = "ON";
-          toggleBtn.classList.add('off');
-          isOn = false;
-        }).catch(error => console.error('Error reaching ESP32:', error));
-      } else {
-        fetch("/on").then(() => {
-          toggleBtn.textContent = "OFF";
-          toggleBtn.classList.remove('off');
-          isOn = true;
-        }).catch(error => console.error('Error reaching ESP32:', error));
-      }
+    function On() {
+      fetch("/on").catch(error => console.error('Error reaching ESP32:', error));
     }
 
+    function Off() {
+      fetch("/off").catch(error => console.error('Error reaching ESP32:', error));
+    }
 
+    function sendSetValue() {
+      const setValue = document.getElementById("setValue");
+      fetch("/setValue", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({ value: setValue.value }),
+      });
+    }
 
     function setPID() {
       const pitchP = document.getElementById("PitchP");
       const pitchI = document.getElementById("PitchI");
       const pitchD = document.getElementById("PitchD");
       const pitchS = document.getElementById("PitchS");
-      const motorP = document.getElementById("MotorP");
-      const motorI = document.getElementById("MotorI");
-      const motorD = document.getElementById("MotorD");
-      const motorS = document.getElementById("MotorS");
-
 
       fetch("/setPID", {
         method: "POST",
@@ -119,47 +112,26 @@
             "S": pitchS.value
           },
           "motor": {
-            "P": motorP.value,
-            "I": motorI.value,
-            "D": motorD.value,
-            "S": motorS.value
+            "P": 0,
+            "I": 0,
+            "D": 0,
+            "S": 0
           }
         })
       }).catch(error => console.error('Error reaching ESP32:', error));
     }
-
-    const keyMap = {
-      'ArrowUp': 'up',
-      'ArrowLeft': 'left',
-      'ArrowRight': 'right',
-      'ArrowDown': 'down'
-    };
-
-    document.addEventListener('keydown', (event) => {
-      const buttonName = keyMap[event.key];
-
-      // If it's an arrow key AND not being held down continuously
-      if (buttonName && !event.repeat) {
-        event.preventDefault(); // Stop the page from scrolling
-        pressButton(buttonName);
-        document.getElementById(buttonName).classList.add('active'); // Visually press the button
-      }
-    });
-
-    document.addEventListener('keyup', (event) => {
-      const buttonName = keyMap[event.key];
-
-      if (buttonName) {
-        unpressButton(buttonName);
-        document.getElementById(buttonName).classList.remove('active'); // Visually release the button
-      }
-    });
   </script>
 </head>
 
 <body>
   <h1>Balancing Robot Control</h1>
-  <button id="toggleBtn" onclick="toggleOn()" class="off">ON</button>
+  <button id="toggleBtnOn" onclick="On()">ON</button>
+  <button id="toggleBtnOff" onclick="Off()" class="off">OFF</button>
+  <div>
+    <p>SetValue</p>
+    <input type="number" min="-10" max="10" id="setValue" value="0" step="any">
+    <button onclick="sendSetValue()">SEND</button>
+  </div>
   <div id="dircntrl">
     <button id="up" onpointerdown="pressButton('up')" onpointerup="unpressButton('up')">UP</button>
     <button id="left" onpointerdown="pressButton('left')" onpointerup="unpressButton('left')">LEFT</button>
@@ -168,62 +140,15 @@
   </div>
   <div class="PID">
     <p>P</p>
-    <input type="number" min="0" max="4095" id="PitchP" value="0" onchange="setPID()">
+    <input type="number" min="0" max="4095" id="PitchP" value="0">
     <p>I</p>
-    <input type="number" min="0" max="4095" id="PitchI" value="0" onchange="setPID()">
+    <input type="number" min="0" max="4095" id="PitchI" value="0">
     <p>D</p>
-    <input type="number" min="0" max="4095" id="PitchD" value="0" onchange="setPID()">
+    <input type="number" min="0" max="4095" id="PitchD" value="0">
     <p>Shift</p>
-    <input type="number" min="0" max="4095" id="PitchS" value="4" onchange="setPID()">
+    <input type="number" min="0" max="4095" id="PitchS" value="4">
+    <button onclick="setPID()">SEND</button>
   </div>
-  <div class="PID">
-    <p>P</p>
-    <input type="number" min="0" max="4095" id="MotorP" value="0" onchange="setPID()">
-    <p>I</p>
-    <input type="number" min="0" max="4095" id="MotorI" value="0" onchange="setPID()">
-    <p>D</p>
-    <input type="number" min="0" max="4095" id="MotorD" value="0" onchange="setPID()">
-    <p>Shift</p>
-    <input type="number" min="0" max="4095" id="MotorS" value="4" onchange="setPID()">
-  </div>
-  <div id="pitchChart"></div>
-
-  <script>
-    const pitch_data = [[], []];
-    const MAX_POINTS = 1000;
-
-    const pitch_opts = {
-      width: 800,
-      height: 400,
-      cursor: {
-        drag: {setScale: true, x: true, y: true}
-      },
-      series: [
-        {},
-        {label: "Pitch", stroke: "#00ff00", width: 2}
-      ],
-      axes: [
-        {stroke: "#ccc", grid: {stroke: "#333"}},
-        {stroke: "#ccc", grid: {stroke: "#333"}}
-      ]
-    };
-
-    const u_pitch = new uPlot(pitch_opts, pitch_data, document.getElementById("pitchChart"));
-    const gateway = `ws://${window.location.hostname}/ws`;
-    const websocket = new WebSocket(gateway);
-    websocket.onmessage = function(event) {
-      const payload = JSON.parse(event.data);
-      pitch_data[0].push(payload.time);
-      pitch_data[1].push(payload.pitch);
-
-      if (pitch_data[0].length > MAX_POINTS) {
-        pitch_data[0].shift();
-        pitch_data[1].shift();
-      }
-
-      u_pitch.setData(pitch_data);
-    }
-  </script>
 </body>
 
 </html>
