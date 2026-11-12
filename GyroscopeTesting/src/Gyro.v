@@ -1,6 +1,8 @@
 module Gyro (
     input clk,
     input rx,
+    input signed [15:0] W_off,
+    input signed [15:0] Y_off,
     output tx,
     output signed [7:0] pitch,
     output data_in,
@@ -40,9 +42,11 @@ module Gyro (
       .uart_data(rx_data),
       .tx_cur_transmitting(tx_active),
       .tx_done(tx_done),
+      .W_off(W_off),
+      .Y_off(Y_off),
       .tx_data(tx_data),
       .tx_ready(tx_ready),
-        .led_wire(led_wire),
+      .led_wire(led_wire),
       .gyro_response(raw_gyro),
       .pitch_angle(pitch),
       .pitch_valid_out(data_in)

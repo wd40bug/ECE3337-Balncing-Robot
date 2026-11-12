@@ -4,6 +4,8 @@ module bn_gyro(
     input [7:0] uart_data,
     input tx_cur_transmitting,
     input tx_done,
+    input signed [15:0] W_off,
+    input signed [15:0] Y_off,
     output [7:0] tx_data,
     output tx_ready,
     output led_wire,
@@ -36,8 +38,8 @@ reg [2:0] startup_state = POWER_UP;
     reg tx_ready_reg = 1'd0;
     assign tx_ready = tx_ready_reg;
 
-    reg [64:0] normal_tx_command_reg;
-    reg [64:0] load_tx_command_reg = 64'd0;
+    reg [63:0] normal_tx_command_reg;
+    reg [63:0] load_tx_command_reg = 64'd0;
     reg load_command_flag;
     reg [4:0] command_length;
     reg [4:0] loaded_command_length;
@@ -449,6 +451,8 @@ quaternion_offset offset(
     .qx_in(qx),
     .qy_in(qy),
     .qz_in(qz),
+    .w_offset(W_off),
+    .y_offset(Y_off),
     .calc_ready(quaternion_done),
     .qw_out(offset_qw),
     .qx_out(offset_qx),

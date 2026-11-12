@@ -245,7 +245,7 @@ module lcd_driver #(
 
   wire [5 * 4 - 1:0] W_off_bcd;
   wire W_off_sign;
-  binary_to_bcd_signed #(.N_BITS(16), .DIGITS(4)) binary_to_bcd_inst16 (
+  binary_to_bcd_signed #(.N_BITS(16), .DIGITS(5)) binary_to_bcd_inst16 (
       .binary_in(W_off),
       .bcd_out(W_off_bcd),
       .sign(W_off_sign)
@@ -253,7 +253,7 @@ module lcd_driver #(
 
   wire [5 * 4 - 1:0] Y_off_bcd;
   wire Y_off_sign;
-  binary_to_bcd_signed #(.N_BITS(16), .DIGITS(4)) binary_to_bcd_inst16 (
+  binary_to_bcd_signed #(.N_BITS(16), .DIGITS(5)) binary_to_bcd_inst17 (
       .binary_in(Y_off),
       .bcd_out(Y_off_bcd),
       .sign(Y_off_sign)

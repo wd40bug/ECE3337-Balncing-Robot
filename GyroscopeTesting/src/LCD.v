@@ -24,6 +24,8 @@ module LCD #(
     input [11:0] motor_i,
     input [11:0] motor_d,
     input [11:0] motor_s,
+    input signed [15:0] W_off,
+    input signed [15:0] Y_off,
     output rs,
     rw,
     e,
@@ -71,6 +73,8 @@ module LCD #(
     .motor_i(motor_i),
     .motor_d(motor_d),
     .motor_s(motor_s),
+    .Y_off(Y_off),
+    .W_off(W_off),
     .lcd_char(lcd_char)
 );
 endmodule

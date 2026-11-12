@@ -67,6 +67,8 @@ module top (
   wire [11:0] motor_i;
   wire [11:0] motor_d;
   wire [11:0] motor_shift;
+  wire signed [15:0] W_off;
+  wire signed [15:0] Y_off;
   wire enabled;
 
   wire gyro_led_wire;
@@ -74,6 +76,8 @@ module top (
   Gyro gyro_inst (
       .clk(clk),
       .rx(gyro_rx),
+      .W_off(W_off),
+      .Y_off(Y_off),
       .tx(gyro_tx),
       .pitch(pitch),
       .data_in(pitch_data_in),
@@ -142,6 +146,8 @@ module top (
       .motor_i(motor_i),
       .motor_d(motor_d),
       .motor_s(motor_shift),
+      .W_off(W_off),
+      .Y_off(Y_off),
       .rs(lcd_rs),
       .rw(lcd_rw),
       .e(lcd_e),
@@ -176,7 +182,9 @@ module top (
       .motor_d(motor_d),
       .motor_shift(motor_shift),
       .leds(leds_wire),
-      .on_state(enabled)
+      .on_state(enabled),
+      .W_off(W_off),
+      .Y_off(Y_off),
   );
 
   uart_tx uart_tx_esp (
