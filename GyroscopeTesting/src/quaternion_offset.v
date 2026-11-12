@@ -4,6 +4,8 @@ module quaternion_offset (
     input signed [15:0] qx_in,
     input signed [15:0] qy_in,
     input signed [15:0] qz_in,
+    input signed [15:0] w_offset,
+    input signed [15:0] y_offset,
     input calc_ready,
 
     output signed [15:0] qw_out,
@@ -12,6 +14,13 @@ module quaternion_offset (
     output signed [15:0] qz_out,
     output ready
 );
+
+
+/*
+-------- NOTE: To change to work with commands, should theoretically only
+need to change W_OFF to w_offset and Y_OFF to y_offset and comment out the
+localparams -------------
+*/
 
 reg ready_reg = 1'd0;
 assign ready = ready_reg;
