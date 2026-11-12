@@ -437,15 +437,35 @@ delay_ms delayer(
     .time_elapsed(delay_done_wire)
 );
 
-// - 71 to y to subtract .5 degree offset
+wire [15:0] offset_qw;
+wire [15:0] offset_qx;
+wire [15:0] offset_qy;
+wire [15:0] offset_qz;
+wire offset_ready;
+
+quaternion_offset offset(
+    .clk(clk),
+    .qw_in(qw),
+    .qx_in(qx),
+    .qy_in(qy),
+    .qz_in(qz),
+    .calc_ready(quaternion_done),
+    .qw_out(offset_qw),
+    .qx_out(offset_qx),
+    .qy_out(offset_qy),
+    .qz_out(offset_qz),
+    .ready(offset_ready)
+);
+
 pitch_lut pitch_calc(
     .clk(clk),
     .rst_neg(pitch_rst),
-    .in_valid(quaternion_done),
-    .qw(qw),
-    .qx(qx),
-    .qy(qy),
-    .qz(qz),
+    //.in_valid(quaternion_done),
+    .in_valid(offset_ready),
+    .qw(offset_qw),
+    .qx(offset_qx),
+    .qy(offset_qy),
+    .qz(offset_qz),
     .pitch_out(pitch_angle),
     .out_valid(pitch_valid_out)
 );
