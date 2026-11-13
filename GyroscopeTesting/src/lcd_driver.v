@@ -26,6 +26,7 @@ module lcd_driver #(
     input [11:0] motor_s,
     input signed [15:0] W_off,
     input signed [15:0] Y_off,
+    input [7:0] min_motor_duty,
     output reg [7:0] lcd_char
 );
 
@@ -245,7 +246,10 @@ module lcd_driver #(
 
   wire [5 * 4 - 1:0] W_off_bcd;
   wire W_off_sign;
-  binary_to_bcd_signed #(.N_BITS(16), .DIGITS(5)) binary_to_bcd_inst16 (
+  binary_to_bcd_signed #(
+      .N_BITS(16),
+      .DIGITS(5)
+  ) binary_to_bcd_inst16 (
       .binary_in(W_off),
       .bcd_out(W_off_bcd),
       .sign(W_off_sign)
@@ -253,10 +257,22 @@ module lcd_driver #(
 
   wire [5 * 4 - 1:0] Y_off_bcd;
   wire Y_off_sign;
-  binary_to_bcd_signed #(.N_BITS(16), .DIGITS(5)) binary_to_bcd_inst17 (
+  binary_to_bcd_signed #(
+      .N_BITS(16),
+      .DIGITS(5)
+  ) binary_to_bcd_inst17 (
       .binary_in(Y_off),
       .bcd_out(Y_off_bcd),
       .sign(Y_off_sign)
+  );
+
+  wire [3 * 4 - 1:0] min_motor_duty_bcd;
+  binary_to_bcd #(
+      .N_BITS(8),
+      .DIGITS(3)
+  ) binary_to_bcd_inst18 (
+      .binary_in(min_motor_duty),
+      .bcd_out  (min_motor_duty_bcd)
   );
 
   always @(*) begin
@@ -466,34 +482,70 @@ module lcd_driver #(
 
       8: begin
         case (lcd_rqst)
-            0: lcd_char <= "W";
-            1: lcd_char <= "o";
-            2: lcd_char <= "f";
-            3: lcd_char <= "f";
-            4: lcd_char <= ":";
-            6: lcd_char <= W_off_sign ? "+" : "-";
-            7: lcd_char <= {4'b0011, W_off_bcd[19:16]};
-            8: lcd_char <= {4'b0011, W_off_bcd[15:12]};
-            9: lcd_char <= {4'b0011, W_off_bcd[11:8]};
-            10: lcd_char <= {4'b0011, W_off_bcd[7:4]};
-            11: lcd_char <= {4'b0011, W_off_bcd[3:0]};
-            14: lcd_char <= "P";
-            15: lcd_char <= ":";
-            16: lcd_char <= "Y";
-            17: lcd_char <= "o";
-            18: lcd_char <= "f";
-            19: lcd_char <= "f";
-            20: lcd_char <= ":";
-            22: lcd_char <= Y_off_sign ? "+" : "-";
-            23: lcd_char <= {4'b0011, Y_off_bcd[19:16]};
-            24: lcd_char <= {4'b0011, Y_off_bcd[15:12]};
-            25: lcd_char <= {4'b0011, Y_off_bcd[11:8]};
-            26: lcd_char <= {4'b0011, Y_off_bcd[7:4]};
-            27: lcd_char <= {4'b0011, Y_off_bcd[3:0]};
-            29: lcd_char <= pitch_sign ? "+" : "-";
-            30: lcd_char <= {4'b0011, pitch_bcd[7:4]};
-            31: lcd_char <= {4'b0011, pitch_bcd[3:0]};
-            default: lcd_char <= " ";
+          0: lcd_char <= "W";
+          1: lcd_char <= "o";
+          2: lcd_char <= "f";
+          3: lcd_char <= "f";
+          4: lcd_char <= ":";
+          6: lcd_char <= W_off_sign ? "+" : "-";
+          7: lcd_char <= {4'b0011, W_off_bcd[19:16]};
+          8: lcd_char <= {4'b0011, W_off_bcd[15:12]};
+          9: lcd_char <= {4'b0011, W_off_bcd[11:8]};
+          10: lcd_char <= {4'b0011, W_off_bcd[7:4]};
+          11: lcd_char <= {4'b0011, W_off_bcd[3:0]};
+          14: lcd_char <= "P";
+          15: lcd_char <= ":";
+          16: lcd_char <= "Y";
+          17: lcd_char <= "o";
+          18: lcd_char <= "f";
+          19: lcd_char <= "f";
+          20: lcd_char <= ":";
+          22: lcd_char <= Y_off_sign ? "+" : "-";
+          23: lcd_char <= {4'b0011, Y_off_bcd[19:16]};
+          24: lcd_char <= {4'b0011, Y_off_bcd[15:12]};
+          25: lcd_char <= {4'b0011, Y_off_bcd[11:8]};
+          26: lcd_char <= {4'b0011, Y_off_bcd[7:4]};
+          27: lcd_char <= {4'b0011, Y_off_bcd[3:0]};
+          29: lcd_char <= pitch_sign ? "+" : "-";
+          30: lcd_char <= {4'b0011, pitch_bcd[7:4]};
+          31: lcd_char <= {4'b0011, pitch_bcd[3:0]};
+          default: lcd_char <= " ";
+        endcase
+      end
+
+      9: begin
+        case (lcd_rqst)
+          1: lcd_char <= "M";
+          2: lcd_char <= "i";
+          3: lcd_char <= "n";
+
+          4: lcd_char <= "D";
+          5: lcd_char <= "u";
+          6: lcd_char <= "t";
+          7: lcd_char <= "y";
+          8: lcd_char <= ":";
+
+          10: lcd_char <= {4'b0011, min_motor_duty_bcd[11:8]};
+          11: lcd_char <= {4'b0011, min_motor_duty_bcd[7:4]};
+          12: lcd_char <= {4'b0011, min_motor_duty_bcd[3:0]};
+
+          16: lcd_char <= "S";
+          17: lcd_char <= "D";
+          18: lcd_char <= "Y";
+          19: lcd_char <= ":";
+          20: lcd_char <= set_pwm_sign ? "+" : "-";
+          21: lcd_char <= {4'b0011, set_pwm_bcd[11:8]};
+          22: lcd_char <= {4'b0011, set_pwm_bcd[7:4]};
+          23: lcd_char <= {4'b0011, set_pwm_bcd[3:0]};
+
+          25: lcd_char <= "D";
+          26: lcd_char <= "Y";
+          27: lcd_char <= ":";
+          28: lcd_char <= pwm_left_sign ? "+" : "-";
+          29: lcd_char <= {4'b0011, pwm_left_bcd[11:8]};
+          30: lcd_char <= {4'b0011, pwm_left_bcd[7:4]};
+          31: lcd_char <= {4'b0011, pwm_left_bcd[3:0]};
+          default: lcd_char <= " ";
         endcase
       end
 
