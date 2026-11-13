@@ -29,7 +29,7 @@ module lcd_driver #(
     output reg [7:0] lcd_char
 );
 
-  reg [2:0] page_num = DEFAULT_PAGE;
+  reg [3:0] page_num = DEFAULT_PAGE;
 
   wire forward_pulse;
   wire forward_held;
@@ -473,10 +473,12 @@ module lcd_driver #(
             4: lcd_char <= ":";
             6: lcd_char <= W_off_sign ? "+" : "-";
             7: lcd_char <= {4'b0011, W_off_bcd[19:16]};
-            8: lcd_char <= {4'b0011, W_off_bcd[14:12]};
+            8: lcd_char <= {4'b0011, W_off_bcd[15:12]};
             9: lcd_char <= {4'b0011, W_off_bcd[11:8]};
             10: lcd_char <= {4'b0011, W_off_bcd[7:4]};
             11: lcd_char <= {4'b0011, W_off_bcd[3:0]};
+            14: lcd_char <= "P";
+            15: lcd_char <= ":";
             16: lcd_char <= "Y";
             17: lcd_char <= "o";
             18: lcd_char <= "f";
@@ -484,10 +486,14 @@ module lcd_driver #(
             20: lcd_char <= ":";
             22: lcd_char <= Y_off_sign ? "+" : "-";
             23: lcd_char <= {4'b0011, Y_off_bcd[19:16]};
-            24: lcd_char <= {4'b0011, Y_off_bcd[14:12]};
+            24: lcd_char <= {4'b0011, Y_off_bcd[15:12]};
             25: lcd_char <= {4'b0011, Y_off_bcd[11:8]};
             26: lcd_char <= {4'b0011, Y_off_bcd[7:4]};
             27: lcd_char <= {4'b0011, Y_off_bcd[3:0]};
+            29: lcd_char <= pitch_sign ? "+" : "-";
+            30: lcd_char <= {4'b0011, pitch_bcd[7:4]};
+            31: lcd_char <= {4'b0011, pitch_bcd[3:0]};
+            default: lcd_char <= " ";
         endcase
       end
 

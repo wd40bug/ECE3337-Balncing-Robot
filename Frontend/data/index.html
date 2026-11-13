@@ -104,6 +104,9 @@
 
       fetch("/setPID", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json" // <-- Add this!
+        },
         body: JSON.stringify({
           "pitch": {
             "P": pitchP.value,

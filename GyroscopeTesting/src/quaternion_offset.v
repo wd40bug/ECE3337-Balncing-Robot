@@ -22,9 +22,6 @@ need to change W_OFF to w_offset and Y_OFF to y_offset and comment out the
 localparams -------------
 */
 
-reg ready_reg = 1'd0;
-assign ready = ready_reg;
-
 // 1.5 degree offset (half angle is +0.75 degrees)
 // localparam signed [31:0] W_OFF = 16'sh3FFF;
 // localparam signed [31:0] Y_OFF = 16'sh00D6;

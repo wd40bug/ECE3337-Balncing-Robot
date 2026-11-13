@@ -1,5 +1,6 @@
 #include "Arduino.h"
 #include "ArduinoJson.h"
+#include "AsyncJson.h"
 #include "AsyncWebSocket.h"
 #include "ESPAsyncWebServer.h"
 #include "ESPmDNS.h"
@@ -133,9 +134,9 @@ void setup() {
     float setValue = 0;
     if (request->hasParam("value", true)) {
       const AsyncWebParameter *p = request->getParam("value", true);
-      const String& value = p->value().c_str();
+      const String &value = p->value().c_str();
       setValue = value.toFloat();
-    }else{
+    } else {
       Serial.println("No value field!");
       request->send(400, "text/plain", "No 'value' field");
       return;
@@ -144,78 +145,65 @@ void setup() {
     Serial.printf("Set value %f\n", setValue);
 
     float alpha = setValue / 2;
-    float W_off = std::cos(alpha * PI / 180.0) * 16384;
-    float Y_off = std::sin(alpha * PI / 180.0) * 16384;
+    float W_off = std::cos(alpha * PI / 180.0) * 16384.0;
+    float Y_off = std::sin(alpha * PI / 180.0) * 16384.0;
+
+    Serial.printf("Woff: %f, Yoff: %f\n", W_off, Y_off);
 
     int16_t W_off_int = std::round(W_off);
     int16_t Y_off_int = std::round(Y_off);
 
     Serial2.write(CMD_SET_ANGLE_OFFSET);
-    Serial2.write((W_off_int >> 8) & 0xFF );
-    Serial2.write(W_off_int & 0xFF );
-    Serial2.write((Y_off_int >> 8) & 0xFF );
-    Serial2.write(Y_off_int & 0xFF );
+    Serial2.write((W_off_int >> 8) & 0xFF);
+    Serial2.write(W_off_int & 0xFF);
+    Serial2.write((Y_off_int >> 8) & 0xFF);
+    Serial2.write(Y_off_int & 0xFF);
     request->send(200);
   });
 
-  server.on("/setPID", HTTP_POST, [](AsyncWebServerRequest *request) {
-    if (request->hasArg("plain") == false) {
-      request->send(400, "application/json", "{\"error\":\"Body missing\"}");
-      return;
-    }
+  AsyncCallbackJsonWebHandler *PIDHandler = new AsyncCallbackJsonWebHandler(
+      "/setPID", [](AsyncWebServerRequest *request, JsonVariant &json) {
+        Serial.println("SetPID");
 
-    // 2. Extract the raw string payload
-    String body = request->arg("plain");
-    Serial.println("Received body: " + body);
+        JsonObject doc = json.as<JsonObject>();
 
-    // 3. Allocate the JSON Document (adjust capacity according to your JSON
-    // size)
-    JsonDocument doc;
+        uint16_t p_pitch = doc["pitch"]["P"];
+        uint16_t i_pitch = doc["pitch"]["I"];
+        uint16_t d_pitch = doc["pitch"]["D"];
+        uint16_t s_pitch = doc["pitch"]["S"];
 
-    // 4. Deserialize the JSON string
-    DeserializationError error = deserializeJson(doc, body);
+        uint16_t p_motor = doc["motor"]["P"];
+        uint16_t i_motor = doc["motor"]["I"];
+        uint16_t d_motor = doc["motor"]["D"];
+        uint16_t s_motor = doc["motor"]["S"];
 
-    if (error) {
-      Serial.print("deserializeJson() failed: ");
-      Serial.println(error.c_str());
-      request->send(400, "application/json", "{\"error\":\"Invalid JSON\"}");
-      return;
-    }
+        // --- Print to serial to verify ---
+        Serial.printf("Pitch - P: %u, I: %u, D: %u, S: %u\n", p_pitch, i_pitch,
+                      d_pitch, s_pitch);
+        Serial.printf("Motor - P: %u, I: %u, D: %u, S: %u\n", p_motor, i_motor,
+                      d_motor, s_motor);
 
-    uint16_t p_pitch = doc["pitch"]["P"];
-    uint16_t i_pitch = doc["pitch"]["I"];
-    uint16_t d_pitch = doc["pitch"]["D"];
-    uint16_t s_pitch = doc["pitch"]["S"];
+        auto send12BitPair = [](HardwareSerial &serial, uint16_t a,
+                                uint16_t b) -> void {
+          a &= 0x0FFF;
+          b &= 0xFFFF;
 
-    uint16_t p_motor = doc["motor"]["P"];
-    uint16_t i_motor = doc["motor"]["I"];
-    uint16_t d_motor = doc["motor"]["D"];
-    uint16_t s_motor = doc["motor"]["S"];
+          serial.write((uint8_t)(a >> 4)); // Top byte of a
+          serial.write((uint8_t)(a << 4) |
+                       (b >> 8)); // Bottom nibble of a, top nibble of b
+          serial.write((uint8_t)(b & 0xFF)); // Bottom byte of b
+        };
 
-    // --- Print to serial to verify ---
-    Serial.printf("Pitch - P: %u, I: %u, D: %u, S: %u\n", p_pitch, i_pitch,
-                  d_pitch, s_pitch);
-    Serial.printf("Motor - P: %u, I: %u, D: %u, S: %u\n", p_motor, i_motor,
-                  d_motor, s_motor);
+        Serial2.write(CMD_PIDS);
+        send12BitPair(Serial2, p_pitch, i_pitch);
+        send12BitPair(Serial2, d_pitch, s_pitch);
+        send12BitPair(Serial2, p_motor, i_motor);
+        send12BitPair(Serial2, d_motor, s_motor);
+        request->send(200);
+      });
 
-    auto send12BitPair = [](HardwareSerial &serial, uint16_t a,
-                            uint16_t b) -> void {
-      a &= 0x0FFF;
-      b &= 0xFFFF;
-
-      serial.write((uint8_t)(a >> 4)); // Top byte of a
-      serial.write((uint8_t)(a << 4) |
-                   (b >> 8));            // Bottom nibble of a, top nibble of b
-      serial.write((uint8_t)(b & 0xFF)); // Bottom byte of b
-    };
-
-    Serial2.write(CMD_PIDS);
-    send12BitPair(Serial2, p_pitch, i_pitch);
-    send12BitPair(Serial2, d_pitch, s_pitch);
-    send12BitPair(Serial2, p_motor, i_motor);
-    send12BitPair(Serial2, d_motor, s_motor);
-    request->send(200);
-  });
+  PIDHandler->setMethod(HTTP_POST);
+  server.addHandler(PIDHandler);
 
   ws.onEvent([](AsyncWebSocket *socket, AsyncWebSocketClient *client,
                 AwsEventType type, void *arg, uint8_t *data, size_t len) {
