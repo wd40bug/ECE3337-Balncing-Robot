@@ -22,7 +22,8 @@ output key_up,
 output key_down,
 output reg [7:0] key_code,
 output [103:0] esp_raw_output,
-output [5:0] leds
+output [5:0] leds,
+output reg [7:0] min_motor_pwm
 );
 
 localparam NO_COMMAND = 3'd0;
@@ -32,6 +33,7 @@ localparam BUTTON_DOWN = 3'd3;
 localparam BUTTON_UP = 3'd4;
 localparam SET_PIDS = 3'd5;
 localparam SET_ANGLE_OFFSET = 8'h10;
+localparam SET_MIN_MOTOR_PWM = 8'h11;
 
 reg [11:0] pitch_p_reg = 12'd0;
 reg [11:0] pitch_i_reg = 12'd0;
@@ -169,6 +171,15 @@ always@(posedge clk) begin
                 W_off <= total_received_data[31:16];
                 Y_off <= total_received_data[15:0];
             end
+        end
+        else if(received_byte == SET_MIN_MOTOR_PWM && !processing_command && just_got_data) begin
+            processing_command <= 1'd1;
+            cmd_state <= SET_MIN_MOTOR_PWM;
+        end
+        else if(cmd_state == SET_MIN_MOTOR_PWM && processing_command && just_got_data) begin
+            min_motor_pwm <= received_byte;
+            processing_command <= 1'd0;
+            cmd_state <= NO_COMMAND;
         end
         else if(cmd_state == NO_COMMAND) begin
         end

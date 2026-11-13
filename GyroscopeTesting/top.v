@@ -73,6 +73,9 @@ module top (
 
   wire gyro_led_wire;
   assign led[0] = gyro_led_wire;
+
+    wire [7:0] min_motor_pwm;
+
   Gyro gyro_inst (
       .clk(clk),
       .rx(gyro_rx),
@@ -107,6 +110,7 @@ module top (
       .D(motor_d),
       .shift(motor_shift),
       .enabled(enabled),
+        .min_motor_pwm(min_motor_pwm),
       .left_enable(ena),
       .left_in1(in1),
       .left_in2(in2),
@@ -185,6 +189,7 @@ module top (
       .on_state(enabled),
       .W_off(W_off),
       .Y_off(Y_off),
+        .min_motor_pwm(min_motor_pwm)
   );
 
   uart_tx uart_tx_esp (
