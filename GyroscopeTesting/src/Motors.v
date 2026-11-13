@@ -9,6 +9,7 @@ module Motors (
     input [11:0] D,
     input [11:0] shift,
     input enabled,
+    input [7:0] min_motor_pwm,
     output left_enable,
     output left_in1,
     output left_in2,
@@ -33,12 +34,12 @@ module Motors (
     end else if (duty == -8'd128) begin
       left_duty  <= 127;
       right_duty <= 127;
-    end else if (duty > -20 && duty < 0) begin
-        left_duty <= 20;
-        right_duty <= 20;
-    end else if (duty < 20 && duty > 0) begin
-        left_duty <= -20;
-        right_duty <= -20;
+    end else if (duty > -min_motor_pwm && duty < 0) begin
+        left_duty <= min_motor_pwm;
+        right_duty <= min_motor_pwm;
+    end else if (duty < min_motor_pwm && duty > 0) begin
+        left_duty <= -min_motor_pwm;
+        right_duty <= -min_motor_pwm;
     end else begin
         left_duty <= -duty;
         right_duty <= -duty;
