@@ -18,7 +18,7 @@ module pitch_lut (
   // Q28 representation of +1.0
   localparam signed [33:0] ONE_Q28 = 34'sd268435456;
 
-  // Threshold ROM: 1440 entries for 1/16 degree precision
+  // Threshold ROM: 1440 entries for 1/16 degree precision (Indices 0 to 1439)
   reg [28:0] threshold_rom [0:1439];
   reg [28:0] rom_data;
 
@@ -36,10 +36,11 @@ module pitch_lut (
   wire signed [31:0] prod_wy = qw * qy;
   wire signed [31:0] prod_zx = qz * qx;
 
-  // State machine states
+  // State machine states (Added S_WAIT for BSRAM pipeline latency)
   localparam [1:0] S_IDLE   = 2'b00,
-                   S_SEARCH = 2'b01,
-                   S_DONE   = 2'b10;
+                   S_WAIT   = 2'b01,
+                   S_EVAL   = 2'b10,
+                   S_DONE   = 2'b11;
 
   reg [1:0] state;
   reg [3:0] iter;
@@ -47,11 +48,9 @@ module pitch_lut (
   reg negative_val;
   reg [28:0] magnitude_val;
 
-  // Module-level wire/reg declarations to satisfy Verilog-2005 rules
   reg signed [32:0] diff;
   reg signed [33:0] s_calc;
   reg signed [33:0] s_clamped;
-  reg [10:0] next_lo, next_hi;
 
   always @(posedge clk or negedge rst_neg) begin
     if (!rst_neg) begin
@@ -60,7 +59,7 @@ module pitch_lut (
       out_valid     <= 1'b0;
       iter          <= 4'd0;
       lo            <= 11'd0;
-      hi            <= 11'd1440;
+      hi            <= 11'd1439;
       mid           <= 11'd0;
       rom_addr      <= 11'd0;
       negative_val  <= 1'b0;
@@ -68,8 +67,6 @@ module pitch_lut (
       diff          <= 33'sd0;
       s_calc        <= 34'sd0;
       s_clamped     <= 34'sd0;
-      next_lo       <= 11'd0;
-      next_hi       <= 11'd0;
     end else begin
       case (state)
         S_IDLE: begin
@@ -88,45 +85,45 @@ module pitch_lut (
             if (s_clamped < 0) magnitude_val <= -s_clamped;
             else magnitude_val <= s_clamped[28:0];
 
-            // Initialize binary search bounds
+            // Initialize binary search bounds (0 to 1439)
             lo       <= 11'd0;
-            hi       <= 11'd1440;
+            hi       <= 11'd1439;
             iter     <= 4'd0;
-            mid      <= 11'd720; // Initial midpoint (0 + 1440) / 2
+            mid      <= 11'd720; 
             rom_addr <= 11'd720;
-            state    <= S_SEARCH;
+            state    <= S_WAIT; // Wait for BSRAM read
           end
         end
 
-        S_SEARCH: begin
-          // Evaluate comparison from previous cycle's synchronous ROM read
-          if (lo < hi) begin
-            if (mid < 1440 && magnitude_val >= rom_data) begin
-              next_lo = mid + 1;
-              next_hi = hi;
+        S_WAIT: begin
+          // Allow 1 clock cycle for synchronous rom_data to latch
+          state <= S_EVAL;
+        end
+
+        S_EVAL: begin
+          // Evaluate comparison using valid rom_data
+          if (lo <= hi) begin
+            if (magnitude_val >= rom_data) begin
+              lo       <= mid + 1;
+              mid      <= ((mid + 1) + hi) / 2;
+              rom_addr <= ((mid + 1) + hi) / 2;
             end else begin
-              next_lo = lo;
-              next_hi = mid;
+              hi       <= mid - 1;
+              mid      <= (lo + (mid - 1)) / 2;
+              rom_addr <= (lo + (mid - 1)) / 2;
             end
-          end else begin
-            next_lo = lo;
-            next_hi = hi;
           end
 
           if (iter == 4'd10) begin
-            // 11 total iterations completed (0 to 10)
             state <= S_DONE;
           end else begin
-            lo       <= next_lo;
-            hi       <= next_hi;
-            mid      <= (next_lo + next_hi) / 2;
-            rom_addr <= (next_lo + next_hi) / 2;
-            iter     <= iter + 1;
+            iter  <= iter + 1;
+            state <= S_WAIT; // Loop back to wait for next BSRAM address
           end
         end
 
         S_DONE: begin
-          // Format 2's complement Q8.4 output
+          // Format 2's complement Q8.4 output using converged index
           if (negative_val) pitch_out <= -lo;
           else pitch_out <= lo;
           

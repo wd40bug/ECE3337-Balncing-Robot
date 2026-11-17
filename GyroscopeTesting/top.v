@@ -38,7 +38,7 @@ module top (
   // --- Sensor Readings ---
   // Angles
   wire signed [11:0] pitch;
-  reg signed [11:0] yaw = -12'b01001011_0001; // 75.0625
+  reg signed [11:0] yaw = -12'b01001011_0010; // 75.0625
   // Speeds
   wire signed [15:0] left_speed;
   wire signed [15:0] right_speed;
