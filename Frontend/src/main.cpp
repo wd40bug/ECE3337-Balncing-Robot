@@ -21,6 +21,7 @@ const uint8_t CMD_BTNDOWN = 0x03;
 const uint8_t CMD_BTNUP = 0x04;
 const uint8_t CMD_PIDS = 0x05;
 const uint8_t CMD_SET_ANGLE_OFFSET = 0x10;
+const uint8_t CMD_SET_MIN_DUTY = 0x11;
 
 const uint8_t TIME_SIZE = 4;
 const uint8_t PITCH_SIZE = 1;
@@ -34,6 +35,17 @@ const uint8_t BTN_UP = 1;
 const uint8_t BTN_DOWN = 2;
 const uint8_t BTN_LEFT = 3;
 const uint8_t BTN_RIGHT = 4;
+
+const String *extract_value(AsyncWebServerRequest *request) {
+  if (request->hasParam("value", true)) {
+    const AsyncWebParameter *p = request->getParam("value", true);
+    return &p->value();
+  } else {
+    Serial.println("No value field!");
+    request->send(400, "text/plain", "No 'value' field");
+    return nullptr;
+  }
+}
 
 void setup() {
   Serial.begin(115200);
@@ -131,16 +143,11 @@ void setup() {
 
   server.on("/setValue", [](AsyncWebServerRequest *request) {
     Serial.println("/setValue");
-    float setValue = 0;
-    if (request->hasParam("value", true)) {
-      const AsyncWebParameter *p = request->getParam("value", true);
-      const String &value = p->value().c_str();
-      setValue = value.toFloat();
-    } else {
-      Serial.println("No value field!");
-      request->send(400, "text/plain", "No 'value' field");
+    const String* setValStr = extract_value(request);
+    if (setValStr == nullptr) {
       return;
     }
+    float setValue = setValStr->toFloat();
 
     Serial.printf("Set value %f\n", setValue);
 
@@ -158,6 +165,19 @@ void setup() {
     Serial2.write(W_off_int & 0xFF);
     Serial2.write((Y_off_int >> 8) & 0xFF);
     Serial2.write(Y_off_int & 0xFF);
+    request->send(200);
+  });
+
+  server.on("/minDuty", [](AsyncWebServerRequest *request) {
+    Serial.println("/minDuty");
+    const String* minDutyStr = extract_value(request);
+    if (minDutyStr == nullptr) {
+      return;
+    }
+    uint8_t minDuty = minDutyStr->toInt();
+    Serial.printf("Min Duty: %u\n", minDuty);
+    Serial2.write(CMD_SET_MIN_DUTY);
+    Serial2.write(minDuty);
     request->send(200);
   });
 

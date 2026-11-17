@@ -23,8 +23,7 @@
       border-radius: 5px;
     }
 
-    #dircntrl>button:active,
-    button.active {
+    button:active {
       background-color: #e66ed0;
     }
 
@@ -65,6 +64,14 @@
     .off {
       background-color: grey;
     }
+
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      justify-content: center;
+    }
+
   </style>
 
   <script>
@@ -85,16 +92,22 @@
       fetch("/off").catch(error => console.error('Error reaching ESP32:', error));
     }
 
-    function sendSetValue() {
-      const setValue = document.getElementById("setValue");
-      fetch("/setValue", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams({ value: setValue.value }),
-      });
+    function simpleValueFunction(name, id) {
+      return function () {
+        console.log(name);
+        const input = document.getElementById(id);
+        fetch("/" + name, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: new URLSearchParams({value: input.value}),
+        })
+      };
     }
+
+    const sendSetValue = simpleValueFunction("setValue", "setValue");
+    const sendMinDuty = simpleValueFunction("minDuty", "minDuty");
 
     function setPID() {
       const pitchP = document.getElementById("PitchP");
@@ -130,16 +143,21 @@
   <h1>Balancing Robot Control</h1>
   <button id="toggleBtnOn" onclick="On()">ON</button>
   <button id="toggleBtnOff" onclick="Off()" class="off">OFF</button>
-  <div>
-    <p>SetValue</p>
-    <input type="number" min="-10" max="10" id="setValue" value="0" step="any">
-    <button onclick="sendSetValue()">SEND</button>
-  </div>
-  <div id="dircntrl">
+    <div id="dircntrl">
     <button id="up" onpointerdown="pressButton('up')" onpointerup="unpressButton('up')">UP</button>
     <button id="left" onpointerdown="pressButton('left')" onpointerup="unpressButton('left')">LEFT</button>
     <button id="right" onpointerdown="pressButton('right')" onpointerup="unpressButton('right')">RIGHT</button>
     <button id="down" onpointerdown="pressButton('down')" onpointerup="unpressButton('down')">DOWN</button>
+  </div>
+  <div class="row">
+    <p>SetValue</p>
+    <input type="number" min="-10" max="10" id="setValue" value="0" step="any">
+    <button onclick="sendSetValue()">SEND</button>
+  </div>
+  <div class="row">
+    <p>MinDuty</p>
+    <input type="number" value="20" min="0" max="127" id="minDuty">
+    <button onclick="sendMinDuty()">SEND</button>
   </div>
   <div class="PID">
     <p>P</p>

@@ -26,6 +26,7 @@ module LCD #(
     input [11:0] motor_s,
     input signed [15:0] W_off,
     input signed [15:0] Y_off,
+    input [7:0] min_motor_duty,
     output rs,
     rw,
     e,
@@ -75,6 +76,7 @@ module LCD #(
     .motor_s(motor_s),
     .Y_off(Y_off),
     .W_off(W_off),
+    .min_motor_duty(min_motor_duty),
     .lcd_char(lcd_char)
 );
 endmodule
