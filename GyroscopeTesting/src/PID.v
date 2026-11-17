@@ -23,30 +23,30 @@ module PID #(
   localparam signed [2*IN_WIDTH-1:0] OUT_MAX = (1 << (OUT_WIDTH - 1)) - 1;
   localparam signed [2*IN_WIDTH-1:0] OUT_MIN = -(1 << (OUT_WIDTH - 1));
 
-  reg signed  [  IN_WIDTH-1:0] preverr;
+  reg signed  [  IN_WIDTH:0] preverr;
   reg signed  [2*IN_WIDTH-1:0] integral;
 
   // Combinational calculations stay at IN_WIDTH precision
-  wire signed [  IN_WIDTH-1:0] err_comb;
-  wire signed [  IN_WIDTH-1:0] derivative_comb;
+  wire signed [  IN_WIDTH:0] err_comb;
+  wire signed [  IN_WIDTH+1:0] derivative_comb;
 
   assign err_comb        = setPos - processvar;
   assign derivative_comb = err_comb - preverr;
 
   // Intermediate terms use 2*IN_WIDTH to prevent overflow during multiplication
-  wire signed [2*IN_WIDTH-1:0] propterm;
-  wire signed [2*IN_WIDTH-1:0] integralterm;
-  wire signed [2*IN_WIDTH-1:0] derivativeterm;
-  wire signed [2*IN_WIDTH-1:0] full_sum;
+  wire signed [13+IN_WIDTH+1:0] propterm;
+  wire signed [13+2*IN_WIDTH-1:0] integralterm;
+  wire signed [13+IN_WIDTH+1:0] derivativeterm;
+  wire signed [13+2*IN_WIDTH:0] full_sum;
 
   /*assign propterm = ($signed(Kp) * $signed(err_comb)) >>> SHIFT;
   assign integralterm = ($signed(Ki) * integral) >>> SHIFT;
   assign derivativeterm = ($signed(Kd) * $signed(derivative_comb)) >>> SHIFT;*/
-  assign propterm = (P_signed * err_comb) >>> shift;
-  assign integralterm = (I_signed * integral) >>> shift;
-  assign derivativeterm = (D_signed * derivative_comb) >>> shift;
+  assign propterm = (P_signed * err_comb);
+  assign integralterm = (I_signed * integral);
+  assign derivativeterm = (D_signed * derivative_comb);
 
-  assign full_sum = propterm + integralterm + derivativeterm;
+  assign full_sum = (propterm >>> shift) + (integralterm >>> shift) + (derivativeterm >>> shift);
 
   // Clamp full_sum to the OUT_WIDTH limits before truncating the bits
   assign correction = (full_sum > OUT_MAX) ? OUT_MAX[OUT_WIDTH-1:0] :
@@ -54,8 +54,8 @@ module PID #(
                         full_sum[OUT_WIDTH-1:0];
 
   // Anti-Windup Limits for the integral (Adjust these to fit your system!)
-  localparam signed [2*IN_WIDTH-1:0] INT_MAX = 32'sd50000;
-  localparam signed [2*IN_WIDTH-1:0] INT_MIN = -32'sd50000;
+  localparam signed [2*IN_WIDTH-1:0] INT_MAX = 32'sd10000;
+  localparam signed [2*IN_WIDTH-1:0] INT_MIN = -32'sd10000;
 
   always @(posedge sample_tick or negedge rst) begin
     if (!rst) begin

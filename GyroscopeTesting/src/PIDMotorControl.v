@@ -24,10 +24,10 @@ module PIDMotorControl (
       .setPos(speed_left),
       .processvar(read_speed_left),
       .sample_tick(data_in_left),
-        .P(P),
-        .I(I),
-        .D(D),
-        .shift(shift),
+      .P(P),
+      .I(I),
+      .D(D),
+      .shift(shift),
       .correction(PWM_left)
   );
 
@@ -41,11 +41,11 @@ module PIDMotorControl (
       .setPos(speed_right),
       .processvar(read_speed_right),
       .sample_tick(data_in_right),
-        .P(P),
-        .I(I),
-        .D(D),
-        .shift(shift),
+      .P(P),
+      .I(I),
+      .D(D),
+      .shift(shift),
       .correction(PWM_right)
   );
- 
+
 endmodule

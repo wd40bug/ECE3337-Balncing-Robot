@@ -28,21 +28,26 @@ module Motors (
   //reg right_duty;
 
   always @(*) begin
-    if (!enabled) begin
+    if (!enabled || duty == 0) begin
+      // Motor disabled
       left_duty  <= 0;
       right_duty <= 0;
-    end else if (duty == -8'd128) begin
+    end else if (duty <= -128 + $signed(min_motor_pwm)) begin
+      // Max out in the positive direction
       left_duty  <= 127;
       right_duty <= 127;
-    end else if (duty > -min_motor_pwm && duty < 0) begin
-        left_duty <= min_motor_pwm;
-        right_duty <= min_motor_pwm;
-    end else if (duty < min_motor_pwm && duty > 0) begin
-        left_duty <= -min_motor_pwm;
-        right_duty <= -min_motor_pwm;
+    end else if (duty >= 128 - $signed(min_motor_pwm)) begin
+      // Max out in the negative direction
+      left_duty  <= -127;
+      right_duty <= -127;
+    end else if (duty > 0) begin
+      // Motor negative direction
+      left_duty  <= -duty - min_motor_pwm;
+      right_duty <= -duty - min_motor_pwm;
     end else begin
-        left_duty <= -duty;
-        right_duty <= -duty;
+      // Motor positive direction
+      left_duty  <= -duty + min_motor_pwm;
+      right_duty <= -duty + min_motor_pwm;
     end
   end
 

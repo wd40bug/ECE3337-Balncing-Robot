@@ -5,8 +5,8 @@ module LCD #(
     input forward,
     input backward,
     // Driver inputs
-    input signed [7:0] pitch,
-    input signed [7:0] yaw,
+    input signed [11:0] pitch,
+    input signed [11:0] yaw,
     input [63:0] gyro_raw,
     input signed [15:0] left_speed,
     input signed [15:0] right_speed,

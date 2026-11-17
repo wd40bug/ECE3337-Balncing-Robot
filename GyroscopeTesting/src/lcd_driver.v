@@ -5,8 +5,8 @@ module lcd_driver #(
     input page_forward,
     input page_backward,
     input [4:0] lcd_rqst,
-    input signed [7:0] pitch,
-    input signed [7:0] yaw,
+    input signed [11:0] pitch,
+    input signed [11:0] yaw,
     input [63:0] RawGyroReading,
     input signed [15:0] LeftEncoderReading,
     input signed [15:0] RightEncoderReading,
@@ -68,24 +68,41 @@ module lcd_driver #(
 
   wire [2 * 4 - 1:0] pitch_bcd;
   wire pitch_sign;
+  wire [4 * 4 - 1:0] pitch_frac_bcd;
   wire [2 * 4 - 1:0] yaw_bcd;
   wire yaw_sign;
+  wire [4 * 4 - 1:0] yaw_frac_bcd;
 
   binary_to_bcd_signed #(
       .N_BITS(8),
       .DIGITS(2)
   ) binary_to_bcd_inst2 (
-      .binary_in(pitch),
+      .binary_in(pitch[11:4]),
       .bcd_out(pitch_bcd),
       .sign(pitch_sign)
+  );
+  fractional_to_bcd #(
+      .FRAC_BITS  (4),
+      .FRAC_DIGITS(4)
+  ) fractional_to_bcd_inst0 (
+      .in(pitch[3:0]),
+      .bcd_out(pitch_frac_bcd)
   );
   binary_to_bcd_signed #(
       .N_BITS(8),
       .DIGITS(2)
   ) binary_to_bcd_inst3 (
-      .binary_in(yaw),
+      .binary_in(yaw[11:4]),
       .bcd_out(yaw_bcd),
       .sign(yaw_sign)
+  );
+
+  fractional_to_bcd #(
+      .FRAC_BITS  (4),
+      .FRAC_DIGITS(4)
+  ) fractional_to_bcd_inst1 (
+      .in(yaw[3:0]),
+      .bcd_out(yaw_frac_bcd)
   );
 
   wire [5 * 4 - 1:0] LeftEncoderBCD;
@@ -279,15 +296,20 @@ module lcd_driver #(
     case (page_num)
       0: begin
         case (lcd_rqst)
-          0: lcd_char <= "P";  // P
-          1: lcd_char <= "i";
-          2: lcd_char <= "t";
-          3: lcd_char <= "c";
-          4: lcd_char <= "h";
-          5: lcd_char <= ":";  // :
-          6: lcd_char <= pitch_sign ? "+" : "-";
-          7: lcd_char <= {4'b0011, pitch_bcd[7:4]};
-          8: lcd_char <= {4'b0011, pitch_bcd[3:0]};
+          0:  lcd_char <= "P";  // P
+          1:  lcd_char <= "i";
+          2:  lcd_char <= "t";
+          3:  lcd_char <= "c";
+          4:  lcd_char <= "h";
+          5:  lcd_char <= ":";  // :
+          6:  lcd_char <= pitch_sign ? "+" : "-";
+          7:  lcd_char <= {4'b0011, pitch_bcd[7:4]};
+          8:  lcd_char <= {4'b0011, pitch_bcd[3:0]};
+          9:  lcd_char <= ".";
+          11: lcd_char <= {4'b0011, pitch_frac_bcd[15:12]};
+          12: lcd_char <= {4'b0011, pitch_frac_bcd[11:8]};
+          13: lcd_char <= {4'b0011, pitch_frac_bcd[7:4]};
+          14: lcd_char <= {4'b0011, pitch_frac_bcd[3:0]};
 
           16: lcd_char <= "Y";  // Y
           17: lcd_char <= "a";
@@ -296,6 +318,11 @@ module lcd_driver #(
           22: lcd_char <= yaw_sign ? "+" : "-";
           23: lcd_char <= {4'b0011, yaw_bcd[7:4]};
           24: lcd_char <= {4'b0011, yaw_bcd[3:0]};
+          25:  lcd_char <= ".";
+          26: lcd_char <= {4'b0011, yaw_frac_bcd[15:12]};
+          27: lcd_char <= {4'b0011, yaw_frac_bcd[11:8]};
+          28: lcd_char <= {4'b0011, yaw_frac_bcd[7:4]};
+          29: lcd_char <= {4'b0011, yaw_frac_bcd[3:0]};
           default: lcd_char <= " ";  // Space
         endcase
       end  // Page 0
