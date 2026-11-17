@@ -4,7 +4,7 @@ module Gyro (
     input signed [15:0] W_off,
     input signed [15:0] Y_off,
     output tx,
-    output signed [7:0] pitch,
+    output signed [11:0] pitch,
     output data_in,
     // Debugging
     output [63:0] raw_gyro,
