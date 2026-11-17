@@ -10,7 +10,7 @@ module bn_gyro(
     output tx_ready,
     output led_wire,
     output [63:0] gyro_response,
-    output signed [7:0] pitch_angle,
+    output signed [11:0] pitch_angle,
     output pitch_valid_out
 );
 
