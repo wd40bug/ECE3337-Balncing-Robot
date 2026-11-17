@@ -30,13 +30,15 @@ module top (
 );
 
   assign led[5] = 0;
+  assign led[4] = !(pitch < 11'sb00000001_000 && pitch > -11'sb00000001_000);
+  assign led[3:1] = 3'b111;
 
   //assign led = 6'b101010;
 
   // --- Sensor Readings ---
   // Angles
   wire signed [11:0] pitch;
-  reg signed [11:0] yaw = -11'sb01001011_0001; // 75.0625
+  reg signed [11:0] yaw = -12'b01001011_0001; // 75.0625
   // Speeds
   wire signed [15:0] left_speed;
   wire signed [15:0] right_speed;
@@ -76,8 +78,14 @@ module top (
 
   wire [7:0] min_motor_pwm;
 
+  wire clk_g;
+  BUFG bufg_inst (
+      .I(clk),
+      .O(clk_g)
+  );
+
   Gyro gyro_inst (
-      .clk(clk),
+      .clk(clk_g),
       .rx(gyro_rx),
       .W_off(W_off),
       .Y_off(Y_off),
@@ -89,7 +97,7 @@ module top (
   );
 
   PIDPitchControl pitch_control (
-      .clk(clk),
+      .clk(clk_g),
       .data_in(pitch_data_in),
       .pitch(pitch),
       .P(pitch_p),
@@ -100,7 +108,7 @@ module top (
   );
 
   Motors motors_inst (
-      .clk(clk),
+      .clk(clk_g),
       .left_encoder_1(enc_left_1),
       .left_encoder_2(enc_left_2),
       .right_encoder_1(enc_right_1),
@@ -128,7 +136,7 @@ module top (
   LCD #(
       .DEFAULT_PAGE(0)
   ) lcd_inst (
-      .clk(clk),
+      .clk(clk_g),
       .forward(page_forward),
       .backward(page_back),
       .pitch(pitch),
@@ -170,7 +178,7 @@ module top (
 
 
   esp_commands esp_inst (
-      .clk(clk),
+      .clk(clk_g),
       .rx_data_valid(esp_rx_data_valid),
       .uart_data(esp_rx_data),
       .tx_cur_transmitting(esp_tx_active),
@@ -195,7 +203,7 @@ module top (
 
   uart_tx uart_tx_esp (
       .i_Rst_L(1'b1),
-      .i_Clock(clk),
+      .i_Clock(clk_g),
       .i_TX_DV(esp_tx_ready),
       .i_TX_Byte(esp_tx_data),
       .o_TX_Active(esp_tx_active),
@@ -204,7 +212,7 @@ module top (
   );
 
   uart_rx uart_rx_esp (
-      .i_Clock(clk),
+      .i_Clock(clk_g),
       .i_RX_Serial(esp_rx),
       .o_RX_DV(esp_rx_data_valid),
       .o_RX_Byte(esp_rx_data)

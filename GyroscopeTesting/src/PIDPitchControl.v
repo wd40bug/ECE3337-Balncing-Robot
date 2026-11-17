@@ -3,7 +3,7 @@ module PIDPitchControl #(
 ) (
     input clk,
     input data_in,
-    input signed [7:0] pitch,
+    input signed [11:0] pitch,
     input [11:0] P,
     input [11:0] I,
     input [11:0] D,
@@ -11,7 +11,7 @@ module PIDPitchControl #(
     output signed [7:0] duty
 );
   PID #(
-    .IN_WIDTH(8),
+    .IN_WIDTH(12),
     .OUT_WIDTH(8)
   ) pid_pitch (
     .clk(clk),

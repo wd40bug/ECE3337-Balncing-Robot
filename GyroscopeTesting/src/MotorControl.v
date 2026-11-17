@@ -30,7 +30,7 @@ always @(*) begin
         left2 <= 0;
         pwm_duty_left <= left_duty << 1;
     end
-    else if(left_duty < 0) begin
+    else begin
         left1 <= 0;
         left2 <= 1;
         //TODO: Fix stupid hack
@@ -48,7 +48,7 @@ always @(*) begin
         right2 <= 0;
         pwm_duty_right <= right_duty << 1;
     end
-    else if(right_duty < 0) begin
+    else begin
         right1 <= 0;
         right2 <= 1;
         pwm_duty_right <= right_duty > -128 ? -right_duty << 1 : 255;

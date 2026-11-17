@@ -73,36 +73,28 @@ module lcd_driver #(
   wire yaw_sign;
   wire [4 * 4 - 1:0] yaw_frac_bcd;
 
-  binary_to_bcd_signed #(
-      .N_BITS(8),
-      .DIGITS(2)
+  fixed_point_to_bcd #(
+      .N_BITS(12),
+      .N_FRAC_BITS(4),
+      .INT_DIGITS(2),
+      .FRAC_DIGITS(4)
   ) binary_to_bcd_inst2 (
-      .binary_in(pitch[11:4]),
-      .bcd_out(pitch_bcd),
+      .binary_in(pitch),
+      .int_bcd(pitch_bcd),
+      .frac_bcd(pitch_frac_bcd),
       .sign(pitch_sign)
   );
-  fractional_to_bcd #(
-      .FRAC_BITS  (4),
-      .FRAC_DIGITS(4)
-  ) fractional_to_bcd_inst0 (
-      .in(pitch[3:0]),
-      .bcd_out(pitch_frac_bcd)
-  );
-  binary_to_bcd_signed #(
-      .N_BITS(8),
-      .DIGITS(2)
-  ) binary_to_bcd_inst3 (
-      .binary_in(yaw[11:4]),
-      .bcd_out(yaw_bcd),
-      .sign(yaw_sign)
-  );
 
-  fractional_to_bcd #(
-      .FRAC_BITS  (4),
+  fixed_point_to_bcd #(
+      .N_BITS(12),
+      .N_FRAC_BITS(4),
+      .INT_DIGITS(2),
       .FRAC_DIGITS(4)
-  ) fractional_to_bcd_inst1 (
-      .in(yaw[3:0]),
-      .bcd_out(yaw_frac_bcd)
+  ) binary_to_bcd_inst3 (
+      .binary_in(yaw),
+      .int_bcd(yaw_bcd),
+      .frac_bcd(yaw_frac_bcd),
+      .sign(yaw_sign)
   );
 
   wire [5 * 4 - 1:0] LeftEncoderBCD;
@@ -306,10 +298,10 @@ module lcd_driver #(
           7:  lcd_char <= {4'b0011, pitch_bcd[7:4]};
           8:  lcd_char <= {4'b0011, pitch_bcd[3:0]};
           9:  lcd_char <= ".";
-          11: lcd_char <= {4'b0011, pitch_frac_bcd[15:12]};
-          12: lcd_char <= {4'b0011, pitch_frac_bcd[11:8]};
-          13: lcd_char <= {4'b0011, pitch_frac_bcd[7:4]};
-          14: lcd_char <= {4'b0011, pitch_frac_bcd[3:0]};
+          10: lcd_char <= {4'b0011, pitch_frac_bcd[15:12]};
+          11: lcd_char <= {4'b0011, pitch_frac_bcd[11:8]};
+          12: lcd_char <= {4'b0011, pitch_frac_bcd[7:4]};
+          13: lcd_char <= {4'b0011, pitch_frac_bcd[3:0]};
 
           16: lcd_char <= "Y";  // Y
           17: lcd_char <= "a";

@@ -57,7 +57,7 @@ module Motors (
       .SignalFeedback1(left_encoder_1),
       .SignalFeedback2(left_encoder_2),
       .ticks(left_speed),
-      .data_out(data_in_left)
+      .data_out()
   );
 
   Encoder encoder_inst_right (
@@ -67,7 +67,7 @@ module Motors (
       .SignalFeedback2(right_encoder_1),
       .SignalFeedback1(right_encoder_2),
       .ticks(right_speed),
-      .data_out(data_in_right)
+      .data_out()
   );
 
   MotorControl motor_control_inst (
