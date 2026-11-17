@@ -6,8 +6,8 @@ module fixed_point_to_bcd #(
 ) (
     input [N_BITS-1:0] binary_in,
     output sign,
-    output reg [INT_DIGITS * 4-1:0] int_bcd,
-    output reg [FRAC_DIGITS * 4 - 1:0] frac_bcd
+    output [INT_DIGITS * 4-1:0] int_bcd,
+    output [FRAC_DIGITS * 4 - 1:0] frac_bcd
 );
   localparam FRAC_DEPTH = 1 << N_FRAC_BITS;
   localparam FRAC_SCALE = 10 ** FRAC_DIGITS;
@@ -26,7 +26,7 @@ module fixed_point_to_bcd #(
     .bcd_out(int_bcd)
   );
 
-  wire frac_bin = abs[N_FRAC_BITS-1:0];
+  wire [N_FRAC_BITS-1:0] frac_bin = abs[N_FRAC_BITS-1:0];
   wire [N_FRAC_BITS + 31:0] frac_prod = frac_bin * FRAC_SCALE;
   wire [31:0] frac_shift = frac_prod >> N_FRAC_BITS;
 
