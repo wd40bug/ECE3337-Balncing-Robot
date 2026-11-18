@@ -29,9 +29,8 @@ module top (
     in4
 );
 
-  assign led[5] = 0;
-  assign led[4] = !(pitch < 11'sb00000001_000 && pitch > -11'sb00000001_000);
-  assign led[3:1] = 3'b111;
+  assign led[5] = !(pitch < 12'sb00000001_0000 && pitch > -12'b00000001_0000);
+  assign led[4:1] = 3'b111;
 
   //assign led = 6'b101010;
 
